@@ -1,0 +1,3096 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>數理透視｜DSE 數學學習分析平台（單檔版）</title>
+<meta name="description" content="為香港中學數學教師而設：上傳試卷照片，自動對應知識點，追蹤每位學生的能力變化與針對性教學建議。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23213b52'/%3E%3Cpath d='M9 28 L16 12 L23 28 M11.6 22.5 H20.4' stroke='%23f6f1e6' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='29' cy='14' r='2.6' fill='%23c0552f'/%3E%3C/svg%3E">
+<!-- 字體全用本機系統字型，不連外部網域：任何網路（含封鎖 Google 的校園網路）都能秒開 -->
+<style>
+/* ============================================================
+   數理透視 — 樣式表
+   設計基調：試卷紙感 × 教員室簿冊的秩序感（暖紙、墨藍、硃砂批改紅）
+   ============================================================ */
+:root{
+  --bg:#f6f4ee;
+  --surface:#fbfaf7;
+  --surface-2:#f1eee6;
+  --ink:#22323e;
+  --ink-soft:#4d5c66;
+  --muted:#7c8790;
+  --line:#e2ded4;
+  --line-strong:#cfc9bc;
+  --primary:#213b52;
+  --primary-soft:#e8edf1;
+  --accent:#c0552f;
+  --accent-soft:#f8ece6;
+  --gold:#b8893f;
+  --good:#2f7d68;
+  --watch:#b98320;
+  --critical:#bd4a3e;
+  --na:#3b6d92;
+  --ms:#2f7d68;
+  --dh:#b4793a;
+  --serif:'Noto Serif TC','Source Han Serif TC','Songti TC','PMingLiU','MingLiU',Georgia,serif;
+  --sans:'Noto Sans TC','Source Han Sans TC','PingFang TC','Microsoft JhengHei','Heiti TC',system-ui,-apple-system,sans-serif;
+  --shadow:0 1px 2px rgba(34,50,62,.04),0 8px 26px rgba(34,50,62,.045);
+  --r:7px;
+}
+*{box-sizing:border-box}
+/* class 上的 display 會蓋過 UA 的 [hidden]，這裏明確還原隱藏語意 */
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,h4{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:.01em}
+::selection{background:#e3d6bd;color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.app-shell{display:flex;min-height:100vh}
+
+/* ---------- 側欄 ---------- */
+.sidebar{
+  width:246px;flex:0 0 246px;background:var(--surface-2);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;z-index:40;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:26px 20px 22px;position:relative}
+.brand::after{content:'';position:absolute;left:20px;right:20px;bottom:0;height:1px;background:var(--line)}
+.brand-mark{width:34px;height:34px;flex:0 0 34px}
+.brand-name{font-family:var(--serif);font-size:19px;font-weight:700;letter-spacing:.08em;line-height:1.25}
+.brand-sub{font-size:10.5px;color:var(--muted);letter-spacing:.09em;margin-top:2px}
+.nav{padding:20px 12px;flex:1;overflow-y:auto}
+.nav-group-label{font-size:10px;letter-spacing:.16em;color:#9aa2a6;padding:12px 10px 7px;font-weight:600}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:5px;
+  color:var(--ink-soft);font-size:13.5px;font-weight:500;margin-bottom:2px;
+  transition:background .16s ease,color .16s ease;position:relative;
+}
+.nav-item:hover{background:rgba(33,59,82,.055);color:var(--ink)}
+.nav-item.active{background:var(--primary);color:#f8f5ec;font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:-12px;top:8px;bottom:8px;width:3px;background:var(--accent)}
+.nav-ico{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 17px}
+.nav-ico svg{width:16px;height:16px}
+.nav-badge{margin-left:auto;font-size:9.5px;letter-spacing:.06em;background:var(--accent);color:#fff;padding:1px 6px;border-radius:20px;font-weight:600}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.22)}
+.sidebar-foot{padding:16px 20px 20px;border-top:1px solid var(--line)}
+.term-chip{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-soft);background:var(--surface);border:1px solid var(--line);padding:4px 10px;border-radius:20px}
+.term-dot{width:6px;height:6px;border-radius:50%;background:var(--good)}
+.side-meta{font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.5}
+.side-link{display:block;margin-top:8px;background:none;border:0;padding:0;font-size:11.5px;color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.side-link:hover{color:var(--accent)}
+.menu-toggle{display:none;background:none;border:0;padding:6px;margin-right:8px;flex-direction:column;gap:4px}
+.menu-toggle span{display:block;width:19px;height:2px;background:var(--primary)}
+
+/* ---------- 頂列 ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  height:82px;flex:0 0 82px;background:rgba(246,244,238,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+  padding:0 34px;position:sticky;top:0;z-index:30;
+}
+.topbar-left{display:flex;align-items:center;gap:4px}
+.crumb{font-size:10.5px;letter-spacing:.1em;color:var(--muted);margin-bottom:2px}
+.page-title{font-size:21px;line-height:1.25}
+.topbar-right{display:flex;align-items:center;gap:9px}
+.content{padding:30px 34px 70px;max-width:1440px;width:100%;margin:0 auto;flex:1}
+.view{display:none;animation:viewIn .34s cubic-bezier(.22,1,.36,1) both}
+.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.view-intro{margin-bottom:22px}
+.row-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+.lede{font-size:13.5px;color:var(--ink-soft);margin:0;max-width:720px;line-height:1.85}
+.eyebrow{font-size:10px;letter-spacing:.17em;color:var(--accent);font-weight:700;text-transform:uppercase;margin-bottom:5px}
+
+/* ---------- 統計列（非卡片式） ---------- */
+.stat-row{display:flex;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);margin-bottom:28px}
+.stat{flex:1;padding:18px 22px 17px;border-right:1px solid var(--line);position:relative;min-width:0}
+.stat:first-child{padding-left:0}
+.stat:last-child{border-right:0}
+.stat-label{font-size:11px;color:var(--muted);letter-spacing:.05em}
+.stat-value{font-family:Georgia,var(--serif);font-size:35px;line-height:1.15;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:3px}
+.stat-value small{font-size:15px;font-weight:400;margin-left:3px;color:var(--muted)}
+.stat-note{font-size:10.5px;color:var(--muted);margin-top:3px}
+.stat.alert .stat-value{color:var(--critical)}
+
+/* ---------- 面板 ---------- */
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(260px,1fr);gap:18px;margin-bottom:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow);margin-bottom:18px}
+.dash-grid .panel{margin-bottom:0}
+.span-2{grid-column:span 1}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}
+.panel-head h2{font-size:16px;line-height:1.4}
+.panel-note{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.panel-desc{font-size:12.5px;color:var(--ink-soft);line-height:1.85;margin:-4px 0 16px}
+.recent-panel{margin:18px 0 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:5px;border-radius:2px}
+.chart-box{width:100%;min-height:60px;position:relative}
+.chart-box.scroll-x{overflow-x:auto;overflow-y:hidden;padding-bottom:4px}
+.chart-host{position:relative}
+.chart-tip{
+  position:absolute;pointer-events:none;opacity:0;transition:opacity .12s ease;
+  background:var(--primary);color:#f7f3ea;font-size:11px;line-height:1.6;padding:7px 10px;
+  border-radius:5px;box-shadow:0 6px 20px rgba(20,35,48,.2);z-index:12;max-width:230px;white-space:normal;
+}
+.chart-tip b{color:#f0c98a}
+.heat-legend{display:flex;align-items:center;gap:9px;font-size:10px;color:var(--muted);margin-top:12px;flex-wrap:wrap}
+.heat-bar{width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,#bd4a3e,#e0a24c,#2f7d68);display:inline-block}
+.heat-legend em{font-style:normal;margin-left:auto;color:#9aa2a6}
+.flat-panel{margin-top:18px}
+.text-link{font-size:11.5px;color:var(--primary);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.text-link:hover{color:var(--accent)}
+
+/* ---------- 按鈕 ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border:1px solid transparent;border-radius:5px;padding:9px 16px;font-size:12.5px;font-weight:600;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease,color .16s ease;
+  white-space:nowrap;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--primary);color:#f8f5ec;border-color:var(--primary)}
+.btn-primary:hover{background:#2c4d68;border-color:#2c4d68}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--primary);border-color:var(--line-strong)}
+.btn-outline:hover{border-color:var(--primary);background:var(--surface-2)}
+.btn-ghost{background:transparent;color:var(--ink-soft);border-color:transparent}
+.btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn-danger-ghost{background:transparent;color:var(--critical);border-color:#e6cdc8}
+.btn-danger-ghost:hover{background:#fbefec}
+.btn-dashed{background:transparent;color:var(--primary);border:1px dashed var(--line-strong);width:100%;margin-top:12px}
+.btn-dashed:hover{border-color:var(--primary);background:var(--surface-2)}
+.btn-sm{padding:6px 12px;font-size:11.5px}
+.btn-block{width:100%;margin-top:18px;padding:11px}
+.btn-stack{display:flex;flex-direction:column;gap:9px}
+.file-label{text-align:center;cursor:pointer}
+.icon-btn{background:none;border:0;font-size:22px;line-height:1;color:var(--muted);padding:2px 6px}
+.icon-btn:hover{color:var(--ink)}
+
+/* ---------- 表單 ---------- */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;min-width:0}
+.field>span{font-size:11.5px;color:var(--ink-soft);font-weight:600;letter-spacing:.02em}
+.field>span b{color:var(--accent);font-weight:700}
+.field input,.field select,.field textarea{
+  width:100%;background:#fff;border:1px solid var(--line-strong);border-radius:5px;
+  padding:9px 11px;font-size:13px;outline:none;transition:border-color .16s,box-shadow .16s;
+}
+.field textarea{resize:vertical;line-height:1.6;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(33,59,82,.08)}
+.field-row{display:flex;gap:14px}
+.field-row.two>.field{flex:1}
+.hint{font-size:11px;color:var(--muted);line-height:1.7;margin:10px 0 0}
+.callout{border-left:3px solid var(--gold);background:#faf5e9;padding:12px 14px;border-radius:0 5px 5px 0;margin:6px 0 18px}
+.callout strong{font-size:11.5px;color:#8a6526}
+.callout p{font-size:11.5px;color:var(--ink-soft);line-height:1.8;margin:4px 0 0}
+
+/* ---------- 表格 ---------- */
+.plain-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.plain-table th{text-align:left;font-size:10.5px;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:9px 10px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+.plain-table td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.plain-table tr:last-child td{border-bottom:0}
+.plain-table tbody tr{transition:background .14s}
+.plain-table tbody tr:hover{background:#f7f5ef}
+.plain-table td.num{font-variant-numeric:tabular-nums;font-family:Georgia,serif;font-size:14px}
+.plain-table a.row-link{font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-strong)}
+.plain-table a.row-link:hover{color:var(--accent)}
+
+/* ---------- 徽標 / 標籤 ---------- */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 8px;border-radius:20px;background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line);white-space:nowrap}
+.tag.na{color:var(--na);border-color:#cfdde8;background:#eef4f8}
+.tag.ms{color:var(--ms);border-color:#cfe2da;background:#edf6f2}
+.tag.dh{color:var(--dh);border-color:#e8d9c2;background:#f9f3e9}
+.tag.critical{color:var(--critical);border-color:#eacdc8;background:#fbeeeb}
+.tag.watch{color:#96691a;border-color:#e9d9b4;background:#faf3e3}
+.tag.good{color:var(--good);border-color:#cbe2d8;background:#edf6f2}
+.tag.demo{color:var(--muted);border-style:dashed}
+.level-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+
+/* ---------- Stepper ---------- */
+.stepper{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid var(--line)}
+.step-tab{display:flex;align-items:center;gap:9px;padding:10px 24px 12px 0;margin-right:24px;font-size:12px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.step-tab .step-num{width:21px;height:21px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;font-size:10.5px;font-family:Georgia,serif}
+.step-tab.active{color:var(--primary);border-bottom-color:var(--accent);font-weight:700}
+.step-tab.active .step-num{background:var(--primary);color:#fff;border-color:var(--primary)}
+.step-tab.done .step-num{background:var(--good);color:#fff;border-color:var(--good)}
+
+/* ---------- 上傳 ---------- */
+.upload-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.dropzone{
+  border:1.5px dashed var(--line-strong);border-radius:var(--r);background:#fcfbf7;
+  padding:34px 20px;text-align:center;transition:border-color .18s,background .18s,transform .18s;cursor:pointer;
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
+.drop-ico{width:38px;height:38px;margin:0 auto 12px;color:var(--primary)}
+.drop-ico svg{width:100%;height:100%}
+.drop-title{font-family:var(--serif);font-size:14px;font-weight:600}
+.drop-sub{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.7}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:9px;margin:14px 0 18px}
+.thumb{position:relative;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:#fff;aspect-ratio:3/4}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb-del{position:absolute;top:3px;right:3px;width:19px;height:19px;border-radius:50%;background:rgba(34,50,62,.82);color:#fff;border:0;font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
+.thumb-name{position:absolute;bottom:0;left:0;right:0;font-size:9px;background:rgba(34,50,62,.78);color:#fff;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mode-list{display:flex;flex-direction:column;gap:9px}
+.mode-card{
+  display:flex;align-items:center;gap:12px;text-align:left;width:100%;
+  background:#fff;border:1px solid var(--line);border-radius:6px;padding:11px 13px;
+  transition:border-color .16s,box-shadow .16s,background .16s;
+}
+.mode-card:hover{border-color:var(--line-strong);box-shadow:var(--shadow)}
+.mode-card.selected{border-color:var(--primary);background:#f4f7f9;box-shadow:inset 3px 0 0 var(--primary)}
+.mode-ico{width:30px;height:30px;flex:0 0 30px;border-radius:5px;background:var(--surface-2);display:grid;place-items:center;color:var(--primary)}
+.mode-ico svg{width:17px;height:17px}
+.mode-card.selected .mode-ico{background:var(--primary);color:#fff}
+.mode-body{flex:1;min-width:0;display:flex;flex-direction:column}
+.mode-body strong{font-size:12.5px;font-weight:600}
+.mode-body small{font-size:10.5px;color:var(--muted);line-height:1.55;margin-top:1px}
+.mode-tag{font-size:9.5px;padding:2px 7px;border-radius:20px;background:var(--accent-soft);color:var(--accent);white-space:nowrap;border:1px solid #edd7cd}
+.mode-tag.neutral{background:var(--surface-2);color:var(--muted);border-color:var(--line)}
+.mode-tag.ready{background:#edf6f2;color:var(--good);border-color:#cbe2d8}
+.paste-box{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
+.paste-box .field{margin-bottom:8px}
+.paste-actions{display:flex;gap:8px;justify-content:flex-end}
+.analysis-status{margin-top:12px;font-size:11.5px;padding:10px 12px;border-radius:5px;background:var(--primary-soft);color:var(--primary);line-height:1.7}
+.analysis-status.error{background:#fbeeeb;color:var(--critical)}
+.analysis-status .spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(33,59,82,.25);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- 分析結果 ---------- */
+.result-banner{font-size:12px;line-height:1.8;padding:11px 14px;border-radius:5px;margin-bottom:16px;border-left:3px solid var(--primary);background:var(--primary-soft);color:var(--ink-soft)}
+.result-banner.demo{border-left-color:var(--gold);background:#faf5e9;color:#7a632f}
+.result-meta{display:flex;gap:22px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-bottom:14px}
+.result-meta b{color:var(--ink);font-weight:600}
+.item-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:5px}
+.item-table{width:100%;border-collapse:collapse;min-width:760px}
+.item-table th{background:var(--surface-2);text-align:left;font-size:10px;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:9px 10px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+.item-table td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.item-table tr:last-child td{border-bottom:0}
+.item-table input,.item-table select{width:100%;border:1px solid transparent;background:transparent;border-radius:4px;padding:6px 7px;font-size:12px;outline:none}
+.item-table input:hover,.item-table select:hover{border-color:var(--line)}
+.item-table input:focus,.item-table select:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 2px rgba(33,59,82,.07)}
+.item-table .qno{font-family:Georgia,serif;font-size:14px;text-align:center}
+.item-table .correct-pick{border-radius:4px;padding:5px 6px;font-size:11.5px;width:100%}
+.item-table .correct-pick.ok{background:#edf6f2;color:var(--good);border-color:#cbe2d8}
+.item-table .correct-pick.no{background:#fbeeeb;color:var(--critical);border-color:#eacdc8}
+.item-del{background:none;border:0;color:var(--muted);font-size:16px;line-height:1;padding:3px 5px}
+.item-del:hover{color:var(--critical)}
+.result-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.result-summary{font-size:12px;color:var(--ink-soft)}
+.result-summary strong{font-family:Georgia,serif;font-size:22px;color:var(--primary);margin-right:3px}
+.result-actions{display:flex;gap:9px}
+
+/* ---------- 學生 ---------- */
+.filter-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.chip{background:transparent;border:1px solid var(--line-strong);border-radius:20px;padding:5px 13px;font-size:11.5px;color:var(--ink-soft);transition:all .16s}
+.chip:hover{border-color:var(--primary)}
+.chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:16px}
+.student-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 19px;box-shadow:var(--shadow);transition:transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s,border-color .18s;position:relative;overflow:hidden}
+.student-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(34,50,62,.1);border-color:var(--line-strong)}
+.student-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--good)}
+.student-card.lv-watch::before{background:var(--watch)}
+.student-card.lv-critical::before{background:var(--critical)}
+.sc-top{display:flex;align-items:flex-start;gap:11px;margin-bottom:14px}
+.avatar{width:40px;height:40px;flex:0 0 40px;border-radius:5px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-family:var(--serif);font-size:17px;font-weight:700}
+.sc-name{font-family:var(--serif);font-size:16px;font-weight:600;line-height:1.35}
+.sc-meta{font-size:10.5px;color:var(--muted);margin-top:2px}
+.sc-score{margin-left:auto;text-align:right;font-family:Georgia,serif;font-size:25px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--primary)}
+.sc-score small{display:block;font-family:var(--sans);font-size:9.5px;color:var(--muted);font-weight:400;margin-top:3px;letter-spacing:.05em}
+.sc-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+.sc-row span:last-child{color:var(--ink-soft);font-weight:600}
+.sc-spark{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.sc-spark-label{font-size:10px;color:var(--muted)}
+.sc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.sc-link{font-size:11.5px;color:var(--primary);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.sc-link:hover{color:var(--accent)}
+
+/* ---------- 學生檔案 ---------- */
+.profile-hero{display:flex;align-items:flex-start;gap:18px;padding:0 0 22px;border-bottom:1px solid var(--line-strong);margin-bottom:22px;flex-wrap:wrap}
+.profile-avatar{width:62px;height:62px;flex:0 0 62px;border-radius:8px;background:var(--primary);color:#f6f1e6;display:grid;place-items:center;font-family:var(--serif);font-size:26px;font-weight:700}
+.profile-id{flex:1;min-width:200px}
+.profile-id h2{font-size:24px;margin-bottom:3px}
+.profile-id .p-meta{font-size:11.5px;color:var(--muted)}
+.profile-id .p-note{font-size:12px;color:var(--ink-soft);margin-top:8px;max-width:600px;line-height:1.75}
+.profile-actions{display:flex;gap:8px;flex-wrap:wrap}
+.profile-stats{display:flex;gap:0;margin-left:auto;border-left:1px solid var(--line);padding-left:22px}
+.pstat{padding:0 18px;border-right:1px solid var(--line)}
+.pstat:last-child{border-right:0;padding-right:0}
+.pstat .v{font-family:Georgia,serif;font-size:25px;font-weight:700;color:var(--primary);line-height:1.2;font-variant-numeric:tabular-nums}
+.pstat .l{font-size:10px;color:var(--muted);white-space:nowrap}
+.profile-grid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(260px,1fr);gap:18px;align-items:start}
+.profile-grid .panel{margin-bottom:18px}
+.advice-list{display:flex;flex-direction:column;gap:11px}
+.advice-card{border:1px solid var(--line);border-left:3px solid var(--watch);border-radius:0 5px 5px 0;padding:13px 15px;background:#fff}
+.advice-card.critical{border-left-color:var(--critical);background:#fdf8f6}
+.advice-card.good{border-left-color:var(--good);background:#f7fbf8}
+.advice-card h4{font-size:13px;line-height:1.55;margin-bottom:5px}
+.advice-card p{font-size:11.5px;color:var(--ink-soft);line-height:1.8;margin:0}
+.advice-card ul{margin:9px 0 0;padding-left:17px;font-size:11.5px;color:var(--ink-soft);line-height:1.85}
+.advice-card li::marker{color:var(--accent)}
+.advice-topics{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.history-item{border-bottom:1px solid var(--line);padding:13px 0}
+.history-item:last-child{border-bottom:0}
+.hi-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.hi-title{font-size:12.5px;font-weight:600}
+.hi-date{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.hi-score{font-family:Georgia,serif;font-size:17px;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums}
+.hi-score small{font-size:11px;color:var(--muted);font-weight:400}
+.hi-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.hi-actions{display:flex;gap:10px;margin-top:8px}
+.hi-actions button{background:none;border:0;padding:0;font-size:10.5px;color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.hi-actions button:hover{color:var(--accent)}
+.hi-actions button.danger{color:var(--critical)}
+
+/* ---------- 知識點庫 ---------- */
+.topic-group{margin-bottom:22px}
+.topic-group-head{display:flex;align-items:center;gap:10px;padding-bottom:9px;border-bottom:1px solid var(--line-strong);margin-bottom:0}
+.topic-group-head .swatch{width:9px;height:9px;border-radius:2px}
+.topic-group-head h3{font-size:15px}
+.topic-group-head .count{font-size:10.5px;color:var(--muted);margin-left:auto}
+.topic-row{display:grid;grid-template-columns:74px 1fr 58px 1.5fr;gap:14px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line);font-size:12px}
+.topic-row:hover{background:#f8f6f0}
+.topic-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.topic-name{font-weight:600}
+.topic-remedy{font-size:11.5px;color:var(--ink-soft);line-height:1.7}
+.topic-kw{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5}
+
+/* ---------- 設定 ---------- */
+.settings-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.85fr);gap:18px;align-items:start}
+.settings-side .panel{margin-bottom:18px}
+.storage-note{font-size:10.5px;color:var(--muted);margin-top:12px;line-height:1.7}
+.about-panel{background:var(--surface-2);border-style:dashed}
+.about-panel p{font-size:11.5px;color:var(--ink-soft);line-height:1.85;margin:8px 0 0}
+
+/* ---------- 共同弱點 ---------- */
+.weak-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.weak-row:last-child{border-bottom:0}
+.weak-rank{font-family:Georgia,serif;font-size:16px;color:var(--line-strong);width:20px;flex:0 0 20px}
+.weak-body{flex:1;min-width:0}
+.weak-name{font-size:12px;font-weight:600}
+.weak-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
+.weak-val{font-family:Georgia,serif;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- 空狀態 ---------- */
+.empty{text-align:center;padding:42px 20px;color:var(--muted)}
+.empty-ico{width:42px;height:42px;margin:0 auto 12px;opacity:.5}
+.empty h3{font-size:15px;color:var(--ink-soft);margin-bottom:6px}
+.empty p{font-size:11.5px;line-height:1.8;max-width:340px;margin:0 auto 16px}
+
+/* ---------- Modal / Toast / Lightbox ---------- */
+.modal-backdrop{position:fixed;inset:0;background:rgba(24,36,45,.45);backdrop-filter:blur(2px);z-index:100;display:grid;place-items:center;padding:20px;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:9px;width:min(520px,100%);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(20,32,42,.28);animation:modalIn .26s cubic-bezier(.22,1,.36,1)}
+@keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 12px;border-bottom:1px solid var(--line)}
+.modal-head h3{font-size:17px}
+.modal-body{padding:18px 22px;overflow-y:auto;font-size:12.5px;line-height:1.8}
+.modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:14px 22px 18px;border-top:1px solid var(--line)}
+.modal-body .field{margin-bottom:13px}
+.toast-wrap{position:fixed;right:22px;bottom:22px;z-index:200;display:flex;flex-direction:column;gap:9px;align-items:flex-end}
+.toast{background:var(--primary);color:#f7f3ea;padding:11px 16px;border-radius:6px;font-size:12px;box-shadow:0 10px 30px rgba(20,32,42,.22);animation:toastIn .28s cubic-bezier(.22,1,.36,1);max-width:360px;line-height:1.6}
+.toast.error{background:var(--critical)}
+.toast.warn{background:#8a6526}
+@keyframes toastIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.image-lightbox{position:fixed;inset:0;background:rgba(18,28,36,.9);z-index:150;display:grid;place-items:center;padding:30px}
+.image-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px}
+.lightbox-close{position:absolute;top:20px;right:26px;background:none;border:0;color:#fff;font-size:34px;line-height:1}
+
+/* ---------- 連續新增：學生上下文 ---------- */
+.context-bar{margin:-6px 0 20px;border:1px solid var(--line);border-left:3px solid var(--primary);background:var(--surface);border-radius:0 5px 5px 0;padding:10px 14px}
+.storage-alert{display:flex;gap:12px;align-items:flex-start;margin:-6px 0 20px;padding:12px 14px;border:1px solid #e6cdc8;border-left:3px solid var(--critical);background:#fdf4f2;border-radius:0 5px 5px 0}
+.storage-alert .sa-ico{flex:0 0 20px;width:20px;height:20px;border-radius:50%;background:var(--critical);color:#fff;font-size:13px;font-weight:700;line-height:20px;text-align:center}
+.storage-alert strong{font-size:13px;color:var(--critical)}
+.storage-alert p{margin:4px 0 0;font-size:12px;line-height:1.7;color:var(--ink-soft)}
+.storage-alert button{margin-left:auto;background:none;border:0;font-size:19px;line-height:1;color:var(--muted);cursor:pointer;padding:0 2px}
+.ctx-main{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft);line-height:1.7}
+.ctx-main b{color:var(--ink);font-weight:700}
+.ctx-tag{font-size:10px;letter-spacing:.08em;color:#fff;background:var(--primary);padding:2px 8px;border-radius:3px;white-space:nowrap;font-weight:600}
+.ctx-main .text-link,.ctx-clear{margin-left:auto}
+.ctx-clear{background:none;border:0;padding:0;font-size:11.5px;color:var(--primary);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.ctx-clear:hover{color:var(--accent)}
+.ctx-saved{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);font-size:11.5px;color:var(--good);font-weight:600;line-height:1.7}
+.history-add{margin:0 0 4px}
+
+/* ---------- 分析紀錄 ---------- */
+.rec-select,.rec-search{background:#fff;border:1px solid var(--line-strong);border-radius:5px;padding:6px 10px;font-size:11.5px;outline:none;color:var(--ink)}
+.rec-select:focus,.rec-search:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(33,59,82,.08)}
+.rec-search{margin-left:auto;min-width:220px}
+.record-table td{font-size:12px}
+.record-table .rec-date{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap;font-size:11px}
+.record-table .rec-title{min-width:180px;max-width:300px}
+.record-table .rec-note{display:block;font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
+.record-table .rec-max{font-size:11px;color:var(--muted);font-family:var(--sans)}
+.rec-actions{display:flex;gap:9px;flex-wrap:nowrap}
+.rec-actions button{background:none;border:0;padding:0;font-size:11px;color:var(--primary);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.rec-actions button:hover{color:var(--accent)}
+.rec-actions button.danger{color:var(--critical)}
+.rec-detail-meta{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);padding-bottom:12px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.rec-detail-meta b{color:var(--ink);font-weight:600}
+.rec-detail-table td{font-size:11.5px}
+.rec-thumbs-label{font-size:10.5px;color:var(--muted);margin:16px 0 8px;letter-spacing:.05em}
+.rec-thumbs{display:flex;gap:9px;flex-wrap:wrap}
+.rec-thumbs img{width:96px;height:126px;object-fit:cover;border:1px solid var(--line);border-radius:4px;cursor:zoom-in;background:#fff}
+.rec-thumbs img:hover{border-color:var(--primary)}
+
+/* ---------- 響應式 ---------- */
+@container (max-width:600px){.dash-grid{grid-template-columns:1fr}}
+@media (max-width:1180px){
+  .dash-grid,.profile-grid{grid-template-columns:1fr}
+  .span-2{grid-column:auto}
+  .profile-stats{margin-left:0;border-left:0;padding-left:0;width:100%;border-top:1px solid var(--line);padding-top:14px}
+}
+@media (max-width:960px){
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);transition:transform .26s cubic-bezier(.22,1,.36,1);box-shadow:12px 0 40px rgba(20,32,42,.14)}
+  .sidebar.open{transform:none}
+  .menu-toggle{display:flex}
+  .upload-grid,.settings-grid{grid-template-columns:1fr}
+  .content{padding:24px 20px 60px}
+  .topbar{padding:0 20px;height:74px;flex-basis:74px}
+  .stat-row{flex-wrap:wrap}
+  .stat{flex:1 1 45%;border-bottom:1px solid var(--line)}
+  .stat:nth-child(2n){border-right:0}
+}
+@media (max-width:600px){
+  .content{padding:20px 14px 50px}
+  .topbar{padding:0 14px}
+  .page-title{font-size:18px}
+  .panel{padding:16px 15px}
+  .field-row.two{flex-direction:column;gap:0}
+  .stat{padding:14px 12px}
+  .stat-value{font-size:29px}
+  .topic-row{grid-template-columns:60px 1fr 48px;gap:8px}
+  .topic-remedy{grid-column:1/-1;margin-top:4px}
+  .profile-hero{gap:12px}
+  .result-footer{flex-direction:column;align-items:stretch}
+  .result-actions{justify-content:flex-end;flex-wrap:wrap}
+  .rec-search,.rec-select{margin-left:0;width:100%;min-width:0}
+  .context-bar{padding:9px 11px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ 側欄 ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="34" height="34"><rect x="1" y="1" width="38" height="38" rx="9" fill="#213b52"/><path d="M9 27 L16 13 L23 27 M11.6 22 H20.4" stroke="#f6f1e6" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="29" cy="14" r="2.4" fill="#c0552f"/><path d="M27.5 25.5 L30.5 25.5 M29 24 L29 27" stroke="#e8b96b" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">數理透視</div>
+        <div class="brand-sub">DSE 數學學習分析</div>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="主要導覽">
+      <div class="nav-group-label">工作區</div>
+      <a class="nav-item" href="#dashboard" data-nav="dashboard"><span class="nav-ico" data-icon="grid"></span><span>班級概覽</span></a>
+      <a class="nav-item" href="#upload" data-nav="upload"><span class="nav-ico" data-icon="scan"></span><span>試卷分析</span></a>
+      <a class="nav-item" href="#students" data-nav="students"><span class="nav-ico" data-icon="users"></span><span>學生檔案</span></a>
+      <a class="nav-item" href="#records" data-nav="records"><span class="nav-ico" data-icon="clipboard"></span><span>分析紀錄</span><span class="nav-badge" id="navRecordsBadge">0</span></a>
+      <div class="nav-group-label">教學資源</div>
+      <a class="nav-item" href="#knowledge" data-nav="knowledge"><span class="nav-ico" data-icon="book"></span><span>知識點庫</span></a>
+      <a class="nav-item" href="#settings" data-nav="settings"><span class="nav-ico" data-icon="sliders"></span><span>設定與備份</span></a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="term-chip"><span class="term-dot"></span><span id="termLabel">2026/27 上學期</span></div>
+      <div class="side-meta" id="sideMeta">資料儲存於本機瀏覽器</div>
+      <button class="side-link" id="btnQuickBackup" type="button">匯出資料備份 <span aria-hidden="true">↗</span></button>
+    </div>
+  </aside>
+
+  <!-- ============ 主內容 ============ -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="開啟選單"><span></span><span></span><span></span></button>
+        <div>
+          <div class="crumb" id="crumb">工作區 / 班級概覽</div>
+          <h1 class="page-title" id="pageTitle">班級概覽</h1>
+        </div>
+      </div>
+      <div class="topbar-right" id="topbarActions"></div>
+    </header>
+
+    <div class="content" id="content">
+
+      <!-- 無法寫入本機儲存時的明確提示（例如被嵌入在不允許儲存的預覽框架） -->
+      <div class="storage-alert" id="storageAlert" hidden>
+        <span class="sa-ico" aria-hidden="true">!</span>
+        <div>
+          <strong>目前無法儲存資料</strong>
+          <p>這個瀏覽環境不允許寫入本機儲存，你新增的學生與試卷只會保留在目前分頁。請用瀏覽器直接開啟本頁（不要停留在嵌入預覽），或改用單檔版 HTML；離開前請到「設定與備份」匯出 JSON。</p>
+        </div>
+        <button type="button" id="storageAlertClose" aria-label="關閉提示">×</button>
+      </div>
+
+      <!-- ---------- 儀表板 ---------- -->
+      <section class="view" id="view-dashboard">
+        <div class="view-intro">
+          <p class="lede" id="dashLede">從試卷照片到教學決策，一次看清全班與每位學生的知識點掌握情況。</p>
+        </div>
+        <div class="stat-row" id="dashStats"></div>
+        <div class="dash-grid">
+          <div class="panel span-2">
+            <div class="panel-head"><div><div class="eyebrow">全班走勢</div><h2>近期得分率變化</h2></div><div class="legend" id="trendLegend"></div></div>
+            <div class="chart-box" id="classTrend"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><div class="eyebrow">三大範疇</div><h2>全班平均掌握度</h2></div></div>
+            <div class="chart-box" id="classRadar"></div>
+          </div>
+          <div class="panel span-2">
+            <div class="panel-head"><div><div class="eyebrow">弱點矩陣</div><h2>學生 × 知識點掌握度</h2></div><span class="panel-note">取最近 3 份作業</span></div>
+            <div class="chart-box scroll-x" id="classHeat"></div>
+            <div class="heat-legend"><span>需補救</span><i class="heat-bar"></i><span>熟練</span><em>灰格代表該知識點尚無作答紀錄</em></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><div class="eyebrow">優先處理</div><h2>全班共同弱點</h2></div></div>
+            <div id="classWeak"></div>
+          </div>
+        </div>
+        <div class="panel flat-panel">
+          <div class="panel-head"><div><div class="eyebrow">學生名冊</div><h2>最近的學習狀態</h2></div><a class="text-link" href="#students">查看全部 →</a></div>
+          <div id="dashStudentTable"></div>
+        </div>
+      </section>
+
+      <!-- ---------- 試卷分析 ---------- -->
+      <section class="view" id="view-upload">
+        <div class="stepper" id="uploadStepper"></div>
+        <div class="context-bar" id="uploadContext" hidden></div>
+
+        <!-- 步驟 1 -->
+        <div class="upload-step" id="step-1">
+          <div class="upload-grid">
+            <div class="panel">
+              <div class="panel-head"><div><div class="eyebrow">步驟 1 / 3</div><h2>上傳試卷照片</h2></div></div>
+              <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="選擇或拖放試卷照片">
+                <div class="drop-ico" data-icon="camera"></div>
+                <div class="drop-title">拖放試卷照片，或按此選擇檔案</div>
+                <div class="drop-sub">支援 JPG / PNG，可一次上傳多張；手機拍攝可直接選取</div>
+                <input type="file" id="fileInput" accept="image/*" multiple hidden>
+              </div>
+              <div class="thumbs" id="thumbs"></div>
+              <div class="field-row two">
+                <label class="field"><span>所屬學生 <b>*</b></span><select id="upStudent"></select></label>
+                <label class="field"><span>作業日期 <b>*</b></span><input type="date" id="upDate"></label>
+              </div>
+              <div class="field-row two">
+                <label class="field"><span>作業名稱</span><input type="text" id="upTitle" placeholder="例：單元測驗（二）｜畢氏定理"></label>
+                <label class="field"><span>類型</span><select id="upType"><option>測驗</option><option>家課</option><option>考試</option><option>課堂練習</option></select></label>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head"><div><div class="eyebrow">步驟 2 / 3</div><h2>產生知識點分析</h2></div></div>
+              <p class="panel-desc">選擇一種方式取得逐題的「知識點 × 對錯 × 得分」。所有結果都可於下一步逐題修改，修正後才會存入學生檔案。</p>
+
+              <div class="mode-list">
+                <button class="mode-card" id="btnModeAI" type="button">
+                  <span class="mode-ico" data-icon="sparkle"></span>
+                  <span class="mode-body"><strong>AI 視覺分析</strong><small>把照片送進多模態模型，自動辨識題目與批改結果</small></span>
+                  <span class="mode-tag" id="aiModeTag">需設定 API</span>
+                </button>
+                <button class="mode-card" id="btnModePaste" type="button">
+                  <span class="mode-ico" data-icon="clipboard"></span>
+                  <span class="mode-body"><strong>貼上分析結果</strong><small>用任何 AI 工具分析後，把 JSON 結果貼回這裏</small></span>
+                  <span class="mode-tag neutral">免設定</span>
+                </button>
+                <button class="mode-card" id="btnModeDemo" type="button">
+                  <span class="mode-ico" data-icon="wand"></span>
+                  <span class="mode-body"><strong>載入示範分析</strong><small>一鍵產生完整的示範逐題結果，用來試用整個流程</small></span>
+                  <span class="mode-tag neutral">示範數據</span>
+                </button>
+                <button class="mode-card" id="btnModeManual" type="button">
+                  <span class="mode-ico" data-icon="pen"></span>
+                  <span class="mode-body"><strong>手動逐題登錄</strong><small>自己新增題目、選知識點與給分，最精準</small></span>
+                  <span class="mode-tag neutral">免設定</span>
+                </button>
+              </div>
+
+              <div class="paste-box" id="pasteBox" hidden>
+                <label class="field"><span>貼上 JSON 分析結果</span><textarea id="pasteJSON" rows="7" placeholder='{"items":[{"qno":"1","knowledgeId":"NA08","correct":false,"points":4,"maxPoints":10,"note":"移項未變號"}]}'></textarea></label>
+                <div class="paste-actions">
+                  <button class="btn btn-ghost btn-sm" id="btnCopyPrompt" type="button">複製專用提示詞</button>
+                  <button class="btn btn-primary btn-sm" id="btnParsePaste" type="button">讀取這份結果</button>
+                </div>
+                <p class="hint">提示詞已內建完整知識點代碼表，把試卷照片與提示詞交給任何支援圖片的 AI 工具，再把回傳的 JSON 貼上即可。</p>
+              </div>
+
+              <button class="btn btn-primary btn-block" id="btnRunAnalysis" type="button">開始分析 <span aria-hidden="true">→</span></button>
+              <div class="analysis-status" id="analysisStatus" hidden></div>
+            </div>
+          </div>
+          <div class="panel recent-panel" id="upRecent"></div>
+        </div>
+
+        <!-- 步驟 2：結果編輯 -->
+        <div class="upload-step" id="step-2" hidden>
+          <div class="panel">
+            <div class="panel-head">
+              <div><div class="eyebrow">步驟 3 / 3</div><h2>核對分析結果</h2></div>
+              <button class="btn btn-ghost btn-sm" id="btnBackUpload" type="button">← 返回上傳</button>
+            </div>
+            <div class="result-banner" id="resultBanner"></div>
+            <div class="result-meta" id="resultMeta"></div>
+            <div class="item-table-wrap">
+              <table class="item-table" id="itemTable">
+                <thead><tr><th style="width:64px">題號</th><th>對應知識點</th><th style="width:92px">結果</th><th style="width:86px">得分</th><th style="width:86px">滿分</th><th>錯因／備註</th><th style="width:40px"></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <button class="btn btn-dashed" id="btnAddItem" type="button">＋ 新增一題</button>
+            <div class="result-footer">
+              <div class="result-summary" id="resultSummary"></div>
+              <div class="result-actions">
+                <button class="btn btn-ghost" id="btnDiscardResult" type="button">捨棄</button>
+                <button class="btn btn-outline" id="btnSaveAndNext" type="button">存檔並繼續加入下一份</button>
+                <button class="btn btn-primary" id="btnSaveResult" type="button">確認並存入學生檔案 <span aria-hidden="true">→</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- 分析紀錄 ---------- -->
+      <section class="view" id="view-records">
+        <div class="view-intro row-intro">
+          <p class="lede" id="recLede">所有已存入的試卷分析結果都累積在這裏，可篩選、查看逐題內容、修正結果或刪除。</p>
+        </div>
+        <div class="stat-row" id="recStats"></div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><div class="eyebrow">全部結果</div><h2>歷次試卷分析紀錄</h2></div>
+            <span class="panel-note" id="recCount"></span>
+          </div>
+          <div class="filter-bar" id="recordFilter"></div>
+          <div id="recordList"></div>
+        </div>
+      </section>
+
+      <!-- ---------- 學生列表 ---------- -->
+      <section class="view" id="view-students">
+        <div class="view-intro row-intro">
+          <p class="lede" id="stuLede">每位學生都有獨立的學習檔案，記錄歷次作業與知識點掌握變化。</p>
+        </div>
+        <div class="filter-bar" id="studentFilter"></div>
+        <div class="student-grid" id="studentGrid"></div>
+      </section>
+
+      <!-- ---------- 學生檔案 ---------- -->
+      <section class="view" id="view-student">
+        <div id="studentProfile"></div>
+      </section>
+
+      <!-- ---------- 知識點庫 ---------- -->
+      <section class="view" id="view-knowledge">
+        <div class="view-intro row-intro">
+          <p class="lede">依香港中學數學課程（中一至中三）與 DSE 銜接整理的知識點代碼表，供分析比對與補救建議使用。</p>
+        </div>
+        <div class="filter-bar" id="topicFilter"></div>
+        <div id="topicList"></div>
+      </section>
+
+      <!-- ---------- 設定 ---------- -->
+      <section class="view" id="view-settings">
+        <div class="settings-grid">
+          <div class="panel">
+            <div class="panel-head"><div><div class="eyebrow">AI 分析</div><h2>視覺模型連線</h2></div></div>
+            <p class="panel-desc">填入你自己的 OpenAI 相容視覺模型設定，即可在「試卷分析」直接把照片送進模型。金鑰只儲存在這台瀏覽器，不會傳送到其他地方。</p>
+            <label class="field"><span>API 端點（chat/completions）</span><input type="text" id="setEndpoint" placeholder="https://api.openai.com/v1/chat/completions"></label>
+            <label class="field"><span>API 金鑰</span><input type="password" id="setApiKey" placeholder="sk-…" autocomplete="off"></label>
+            <label class="field"><span>模型名稱</span><input type="text" id="setModel" placeholder="gpt-4o-mini"></label>
+            <div class="callout warn">
+              <strong>關於瀏覽器直接呼叫</strong>
+              <p>部分 API 服務不允許網頁直接連線（CORS 限制）。若出現連線錯誤，可改用「貼上分析結果」：按一下該頁的「複製專用提示詞」，把提示詞與試卷照片交給任何支援圖片的 AI 工具，再貼回 JSON 即可。</p>
+            </div>
+            <div class="field-row two">
+              <label class="field"><span>教師姓名</span><input type="text" id="setTeacher" placeholder="選填"></label>
+              <label class="field"><span>學校／班別</span><input type="text" id="setSchool" placeholder="選填"></label>
+            </div>
+            <button class="btn btn-primary" id="btnSaveSettings" type="button">儲存設定</button>
+          </div>
+
+          <div class="settings-side">
+            <div class="panel">
+              <div class="panel-head"><div><div class="eyebrow">資料</div><h2>備份與還原</h2></div></div>
+              <p class="panel-desc">所有資料只存放在你目前使用的瀏覽器，不會自動與其他老師或其他電腦同步。要把資料交給別人、或更換裝置，請匯出 JSON 備份再由對方「從備份還原」；建議定期備份。</p>
+              <div class="btn-stack">
+                <button class="btn btn-outline" id="btnExport" type="button">匯出全部資料（JSON）</button>
+                <label class="btn btn-outline file-label">從備份還原<input type="file" id="importFile" accept="application/json,.json" hidden></label>
+              </div>
+              <div class="storage-note" id="storageNote"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><div class="eyebrow">示範內容</div><h2>重設資料</h2></div></div>
+              <p class="panel-desc">首次開啟時預載了 5 位示範學生與 25 份作業，方便試用。開始正式使用時可清空。</p>
+              <div class="btn-stack">
+                <button class="btn btn-outline" id="btnResetDemo" type="button">還原示範資料</button>
+                <button class="btn btn-danger-ghost" id="btnClearAll" type="button">清空全部學生與作業</button>
+              </div>
+            </div>
+            <div class="panel about-panel">
+              <div class="eyebrow">關於這個平台</div>
+              <p>「數理透視」把試卷照片轉成可追蹤的知識點數據：逐題標記 → 建立學生檔案 → 觀察能力曲線 → 取得針對性教學建議。知識點表可依校本課程自行增補。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Modal / Toast -->
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head"><h3 id="modalTitle"></h3><button class="icon-btn" id="modalClose" type="button" aria-label="關閉">×</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+<div class="image-lightbox" id="lightbox" hidden><button class="lightbox-close" type="button" aria-label="關閉">×</button><img id="lightboxImg" alt="試卷影像放大"></div>
+
+<script>
+/* ---- knowledge.js ---- */
+/* ============================================================
+   knowledge.js — 香港初中數學（DSE 銜接）知識點庫 + 示範數據
+   全域物件：window.DSEData
+   ============================================================ */
+(function (global) {
+  'use strict';
+
+  var STRANDS = [
+    { id: 'na', name: '數與代數', short: '代數', en: 'Number & Algebra', color: '#3b6d92' },
+    { id: 'ms', name: '度量、圖形與空間', short: '圖形', en: 'Measures, Shape & Space', color: '#2f7d68' },
+    { id: 'dh', name: '數據處理', short: '數據', en: 'Data Handling', color: '#b4793a' }
+  ];
+
+  // k: 關鍵詞（供模型比對／搜尋）；r: 補救教學建議；p: 前置知識
+  var TOPICS = [
+    { id: 'NA01', name: '整數與四則運算', strand: 'na', stage: '中一', k: ['整數', '四則', '負數', '運算次序', 'integer', 'order of operations'], r: '以數線鞏固負數加減，練習混合運算的括號與次序，每天 5 題限時訓練。', p: [] },
+    { id: 'NA02', name: '分數與小數運算', strand: 'na', stage: '中一', k: ['分數', '小數', '通分', '約分', 'fraction', 'decimal'], r: '先補通分與最大公因數，再以圖形分割理解分數乘除，避免只背「顛倒相乘」。', p: ['NA01'] },
+    { id: 'NA03', name: '百分數及應用', strand: 'na', stage: '中一', k: ['百分數', '折扣', '利息', '增長率', 'percentage', 'discount'], r: '以「原值 × (1 ± 百分率）」統一建模，大量練習折扣、盈利與單利息的語境轉換。', p: ['NA02'] },
+    { id: 'NA04', name: '比與比例', strand: 'na', stage: '中一', k: ['比', '比例', '正比例', '反比例', 'ratio', 'proportion'], r: '用「一份是多少」作橋樑，區分正比例與反比例，配合比例尺與食譜題。', p: ['NA02'] },
+    { id: 'NA05', name: '指數記法與科學記數法', strand: 'na', stage: '中二', k: ['指數', '冪', '科學記數法', 'index notation', 'scientific notation'], r: '重溫指數定律（同底相乘／相除、冪的冪），強調科學記數法 a×10ⁿ 中 1≤a<10。', p: ['NA01'] },
+    { id: 'NA06', name: '平方根與無理數', strand: 'na', stage: '中二', k: ['平方根', '無理數', '根號', 'square root', 'irrational'], r: '以正方形面積反推邊長，辨識 √2 等無理數，練習估算平方根所在區間。', p: ['NA01'] },
+    { id: 'NA07', name: '代數式與化簡', strand: 'na', stage: '中一', k: ['代數式', '同類項', '化簡', '代入', 'algebraic expression', 'like terms'], r: '以「字母代表未知數」的具體情境引入，反覆區分 2a 與 a²、-(a-b) 的展開。', p: ['NA01'] },
+    { id: 'NA08', name: '一元一次方程', strand: 'na', stage: '中一', k: ['方程', '移項', '解方程', 'linear equation', 'solve'], r: '用天平模型建立「兩邊同做」的等價概念，重點糾正移項變號與分母處理。', p: ['NA07'] },
+    { id: 'NA09', name: '因式分解', strand: 'na', stage: '中二', k: ['因式分解', '公因式', '十字相乘', '平方差', 'factorization'], r: '先練提取公因式，再以面積模型理解 (a+b)(a-b)，十字相乘需配合大量拆解練習。', p: ['NA07'] },
+    { id: 'NA10', name: '二元一次方程組', strand: 'na', stage: '中二', k: ['聯立方程', '代入法', '消元法', 'simultaneous equations'], r: '比較代入法與消元法的選題策略，訓練由文字題設兩個未知數。', p: ['NA08'] },
+    { id: 'NA11', name: '一元一次不等式', strand: 'na', stage: '中二', k: ['不等式', '解集', '數線', 'inequality'], r: '強調「乘除負數要反轉方向」，並以數線表示解集，與方程解法作對照。', p: ['NA08'] },
+    { id: 'NA12', name: '數列與規律', strand: 'na', stage: '中二', k: ['數列', '通項', '等差', '等比', 'sequence', 'pattern'], r: '由相鄰項差值入手找規律，再引導寫出第 n 項，避免只靠直覺猜下一項。', p: ['NA07'] },
+    { id: 'NA13', name: '函數及其圖像', strand: 'na', stage: '中三', k: ['函數', '一次函數', '圖像', '斜率', 'function', 'graph'], r: '以「輸入—輸出」表列建立函數概念，練習由坐標描點畫直線並讀斜率與截距。', p: ['NA08', 'MS10'] },
+    { id: 'NA14', name: '有理數與絕對值', strand: 'na', stage: '中一', k: ['有理數', '絕對值', '數線', 'rational number', 'absolute value'], r: '以數線距離定義絕對值，配合正負數混合比較大小。', p: ['NA01'] },
+
+    { id: 'MS01', name: '角與平行線', strand: 'ms', stage: '中一', k: ['對頂角', '同位角', '內錯角', '平行線', 'angle', 'parallel lines'], r: '用彩色筆標出 Z 形／F 形／U 形，先辨認角的位置關係再寫理由。', p: [] },
+    { id: 'MS02', name: '三角形內角和與外角', strand: 'ms', stage: '中一', k: ['三角形', '內角和', '外角', 'triangle', 'exterior angle'], r: '以撕紙拼角活動驗證 180°，再推導外角等於兩內對角之和。', p: ['MS01'] },
+    { id: 'MS03', name: '多邊形內角', strand: 'ms', stage: '中二', k: ['多邊形', '內角和', '外角和', 'polygon', 'interior angle'], r: '由一個頂點分割出 (n−2) 個三角形推導公式，避免死背。', p: ['MS02'] },
+    { id: 'MS04', name: '全等三角形', strand: 'ms', stage: '中二', k: ['全等', 'SSS', 'SAS', 'ASA', 'congruence'], r: '訓練先標記已知對應邊角，再判斷屬於哪個判定條件，強調書寫格式。', p: ['MS02'] },
+    { id: 'MS05', name: '相似三角形', strand: 'ms', stage: '中三', k: ['相似', '對應邊', '比例', 'similar triangles'], r: '區分「全等」與「相似」，先找出對應頂點順序再列比例式。', p: ['MS04', 'NA04'] },
+    { id: 'MS06', name: '畢氏定理', strand: 'ms', stage: '中二', k: ['畢氏定理', '勾股', '直角三角形', 'Pythagoras'], r: '用方格紙驗證面積關係，訓練先判斷斜邊，再代入 a²+b²=c²。', p: ['NA06'] },
+    { id: 'MS07', name: '圓周、弧長與扇形', strand: 'ms', stage: '中二', k: ['圓周', '弧長', '扇形', '圓心角', 'arc', 'sector'], r: '以「佔整圓幾分之幾」統一處理弧長與扇形面積，減少公式記憶量。', p: ['NA04'] },
+    { id: 'MS08', name: '周界與面積', strand: 'ms', stage: '中一', k: ['周界', '面積', '平行四邊形', '梯形', 'area', 'perimeter'], r: '以割補法推導平行四邊形、三角形、梯形面積公式，注意單位與高必須垂直。', p: [] },
+    { id: 'MS09', name: '表面積與體積', strand: 'ms', stage: '中二', k: ['表面積', '體積', '柱體', '稜柱', 'volume', 'surface area'], r: '用展開圖數出所有面，區分「底面積 × 高」與側面積的計算。', p: ['MS08'] },
+    { id: 'MS10', name: '直角坐標與距離', strand: 'ms', stage: '中一', k: ['坐標', '象限', '距離', '中點', 'coordinate', 'midpoint'], r: '強調 (x, y) 的先橫後縱順序，配合方格紙練習描點、讀點與對稱。', p: [] },
+    { id: 'MS11', name: '變換：平移、旋轉、反射', strand: 'ms', stage: '中二', k: ['平移', '旋轉', '反射', '對稱', 'transformation', 'rotation'], r: '要求寫出旋轉中心、角度與方向；用透明紙操作建立直觀。', p: ['MS10'] },
+    { id: 'MS12', name: '放大與縮小', strand: 'ms', stage: '中三', k: ['放大', '縮小', '比例因子', 'enlargement', 'scale factor'], r: '區分比例因子對長度與面積的影響（k 與 k²）。', p: ['MS05'] },
+    { id: 'MS13', name: '三角比', strand: 'ms', stage: '中三', k: ['正弦', '餘弦', '正切', 'sin', 'cos', 'tan', '斜邊'], r: '以 SOH-CAH-TOA 標註相對邊，先練「判斷用哪個比」而不急於計數。', p: ['MS06', 'NA04'] },
+    { id: 'MS14', name: '立體圖形與截面', strand: 'ms', stage: '中三', k: ['立體', '截面', '投影', '3D', 'cross section'], r: '配合實物模型或動態幾何軟件觀察截面，補足空間想像。', p: ['MS09'] },
+
+    { id: 'DH01', name: '數據搜集與整理', strand: 'dh', stage: '中一', k: ['數據', '抽樣', '問卷', '頻數表', 'data', 'frequency table'], r: '討論抽樣偏差與問卷用詞，練習把原始資料整理成頻數表。', p: [] },
+    { id: 'DH02', name: '統計圖表', strand: 'dh', stage: '中一', k: ['棒形圖', '折線圖', '圓形圖', '幹葉圖', 'bar chart', 'pie chart'], r: '比較各類圖表適用情境，圓形圖需由頻數換算圓心角。', p: ['DH01', 'NA03'] },
+    { id: 'DH03', name: '平均數、中位數、眾數', strand: 'dh', stage: '中二', k: ['平均數', '中位數', '眾數', '極端值', 'mean', 'median', 'mode'], r: '以極端值例子說明三者差異，並練習由頻數表加權計算平均數。', p: ['DH01'] },
+    { id: 'DH04', name: '概率初步', strand: 'dh', stage: '中二', k: ['概率', '可能性', '樹形圖', '抽球', 'probability', 'tree diagram'], r: '用列舉所有等可能結果的方法建立 P = 有利結果／總結果，強調「不放回」的變化。', p: ['NA02'] },
+    { id: 'DH05', name: '散點圖與相關性', strand: 'dh', stage: '中三', k: ['散點圖', '相關', '最佳擬合線', 'scatter plot', 'correlation'], r: '辨識正相關、負相關與無相關，強調相關不等於因果。', p: ['MS10'] },
+    { id: 'DH06', name: '統計圖表的誤用', strand: 'dh', stage: '中三', k: ['誤導', '刻度', '統計陷阱', 'misleading graph'], r: '分析截斷縱軸、不等距分組、樣本不足等常見誤導手法。', p: ['DH02'] }
+  ];
+
+  var STAGES = ['中一', '中二', '中三'];
+
+  // ---- 確定性偽隨機，保證示範資料每次一致 ----
+  function makeRandom(seed) {
+    var s = seed >>> 0;
+    return function () {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+  }
+  function hashString(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  var DEMO_STUDENTS = [
+    { id: 's-chen', name: '陳雅晴', sid: '2A-01', klass: '2A', note: '代數基礎紮實，幾何證明需多練書寫格式。', base: 0.72, trend: 0.055, strong: ['NA07', 'NA08', 'NA09'], weak: ['MS04', 'MS06', 'MS13'] },
+    { id: 's-wong', name: '黃梓軒', sid: '2A-02', klass: '2A', note: '計算粗心，方程移項與因式分解長期偏弱。', base: 0.48, trend: 0.012, strong: ['MS08', 'DH02'], weak: ['NA08', 'NA09', 'NA11', 'MS06'] },
+    { id: 's-lam', name: '林凱琳', sid: '2B-01', klass: '2B', note: '進步明顯，數據處理表現突出。', base: 0.58, trend: 0.085, strong: ['DH03', 'DH04', 'NA03'], weak: ['MS06', 'MS07'] },
+    { id: 's-lee', name: '李俊傑', sid: '2A-03', klass: '2A', note: '近兩次測驗下滑，需盡快跟進。', base: 0.70, trend: -0.062, strong: ['MS01', 'MS02'], weak: ['NA10', 'NA11', 'MS13', 'DH04'] },
+    { id: 's-cheung', name: '張曉彤', sid: '2B-02', klass: '2B', note: '整體穩定優異，可給予延伸題。', base: 0.84, trend: 0.018, strong: ['NA08', 'NA09', 'MS06', 'DH03'], weak: ['DH04', 'MS14'] }
+  ];
+
+  // 讓同一知識點在學期內重複出現 2–4 次，掌握度才有統計意義
+  var DEMO_PAPERS = [
+    { title: '單元測驗（一）｜代數式與方程', date: '2026-09-11', type: '測驗', focus: ['NA07', 'NA08', 'NA03', 'NA04', 'NA02', 'NA01', 'NA14', 'NA12'] },
+    { title: '家課（三）｜角與平行線', date: '2026-09-25', type: '家課', focus: ['MS01', 'MS02', 'MS08', 'MS10', 'NA08', 'NA07', 'MS04', 'MS03'] },
+    { title: '上學期統一測驗', date: '2026-10-09', type: '考試', focus: ['NA09', 'NA11', 'NA06', 'MS06', 'MS10', 'MS04', 'DH03', 'DH04'] },
+    { title: '家課（五）｜統計與概率', date: '2026-10-23', type: '家課', focus: ['DH02', 'DH03', 'DH04', 'NA03', 'NA04', 'MS10', 'NA07', 'DH01'] },
+    { title: '單元測驗（二）｜畢氏定理與坐標', date: '2026-11-04', type: '測驗', focus: ['MS06', 'MS10', 'NA06', 'NA09', 'NA11', 'MS01', 'NA08', 'DH03'] }
+  ];
+
+  // 依「學生能力 × 時間」產生逐題對錯，讓趨勢圖有真實可解釋的變化
+  function buildDemoSubmissions() {
+    var out = [];
+    DEMO_STUDENTS.forEach(function (stu, si) {
+      DEMO_PAPERS.forEach(function (paper, pi) {
+        var rnd = makeRandom(hashString(stu.id + '|' + paper.date));
+        var items = paper.focus.map(function (kid, qi) {
+          var t = pi / Math.max(1, DEMO_PAPERS.length - 1); // 0 → 1
+          var ability = stu.base + stu.trend * (t * 2 - 0.25);
+          if (stu.strong.indexOf(kid) >= 0) ability += 0.14;
+          if (stu.weak.indexOf(kid) >= 0) ability -= 0.20;
+          ability += (rnd() - 0.5) * 0.18;
+          ability = Math.max(0.08, Math.min(0.94, ability));
+          var maxPoints = 10;
+          var correct = rnd() < ability;
+          // 貼近真實批改：答對仍可能因步驟不完整扣分，答錯亦常有部分分
+          var points;
+          if (correct) points = maxPoints - (rnd() < 0.30 ? Math.round(1 + rnd() * 2) : 0);
+          else points = rnd() < 0.45 ? Math.round(maxPoints * (0.25 + rnd() * 0.4)) : 0;
+          return {
+            qno: String(qi + 1),
+            knowledgeId: kid,
+            correct: correct,
+            points: points,
+            maxPoints: maxPoints,
+            note: ''
+          };
+        });
+        var score = items.reduce(function (a, b) { return a + b.points; }, 0);
+        out.push({
+          id: 'sub-' + stu.id + '-' + pi,
+          studentId: stu.id,
+          title: paper.title,
+          date: paper.date,
+          type: paper.type,
+          imageData: null,
+          imageName: '',
+          score: score,
+          totalScore: items.length * 10,
+          items: items,
+          source: 'demo',
+          createdAt: paper.date + 'T16:00:00'
+        });
+      });
+    });
+    return out;
+  }
+
+  function buildDemoData() {
+    return {
+      version: 1,
+      students: DEMO_STUDENTS.map(function (s) {
+        return { id: s.id, name: s.name, sid: s.sid, klass: s.klass, note: s.note, createdAt: '2026-09-01' };
+      }),
+      submissions: buildDemoSubmissions(),
+      settings: {
+        apiEndpoint: '',
+        apiKey: '',
+        model: 'gpt-4o-mini',
+        teacher: '',
+        school: ''
+      },
+      customTopics: [],
+      demoLoaded: true,
+      seededAt: new Date().toISOString()
+    };
+  }
+
+  global.DSEData = {
+    STRANDS: STRANDS,
+    TOPICS: TOPICS,
+    STAGES: STAGES,
+    buildDemoData: buildDemoData,
+    makeRandom: makeRandom,
+    hashString: hashString,
+    strandOf: function (id) {
+      for (var i = 0; i < STRANDS.length; i++) if (STRANDS[i].id === id) return STRANDS[i];
+      return STRANDS[0];
+    }
+  };
+})(window);
+
+</script>
+<script>
+/* ---- store.js ---- */
+/* ============================================================
+   store.js — 本機資料層（localStorage）與統計運算
+   全域物件：window.DSEStore
+   ============================================================ */
+(function (global) {
+  'use strict';
+
+  var KEY = 'dse_math_insight_v1';
+  var state = null;
+  var memoryOnly = false;
+  var lastWarning = '';
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function uid(prefix) {
+    return (prefix || 'id') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function init() {
+    var parsed = null;
+    try {
+      var raw = global.localStorage.getItem(KEY);
+      if (raw) parsed = JSON.parse(raw);
+    } catch (e) { memoryOnly = true; }
+    if (!parsed || !parsed.students || !parsed.submissions) {
+      parsed = global.DSEData.buildDemoData();
+      state = parsed;
+      save();
+    } else {
+      state = parsed;
+      if (!state.settings) state.settings = { apiEndpoint: '', apiKey: '', model: 'gpt-4o-mini', teacher: '', school: '' };
+      if (!state.customTopics) state.customTopics = [];
+    }
+    return state;
+  }
+
+  function save() {
+    if (!state) return true;
+    var payload;
+    try {
+      payload = JSON.stringify(state);
+      global.localStorage.setItem(KEY, payload);
+      lastWarning = '';
+      return true;
+    } catch (e) {
+      // 圖片最佔空間：依序捨棄最舊記錄的圖片後重試
+      var withImage = state.submissions.filter(function (s) { return !!s.imageData; })
+        .sort(function (a, b) { return (a.date || '').localeCompare(b.date || ''); });
+      for (var i = 0; i < withImage.length; i++) {
+        withImage[i].imageData = null;
+        withImage[i].extraImages = [];
+        try {
+          global.localStorage.setItem(KEY, JSON.stringify(state));
+          lastWarning = '儲存空間已滿，已自動移除部分較舊試卷影像（分析結果與分數完整保留）。';
+          return true;
+        } catch (e2) { /* continue */ }
+      }
+      memoryOnly = true;
+      lastWarning = '無法寫入瀏覽器儲存，本次變更只保留在目前頁面。建議匯出備份。';
+      return false;
+    }
+  }
+
+  function raw() { return state; }
+  function warning() { return lastWarning; }
+  function isMemoryOnly() { return memoryOnly; }
+
+  // ---------- 學生 ----------
+  function students() {
+    return state.students.slice().sort(function (a, b) {
+      return (a.klass || '').localeCompare(b.klass || '') || (a.sid || '').localeCompare(b.sid || '');
+    });
+  }
+  function getStudent(id) {
+    for (var i = 0; i < state.students.length; i++) if (state.students[i].id === id) return state.students[i];
+    return null;
+  }
+  function addStudent(data) {
+    var s = {
+      id: uid('stu'),
+      name: (data.name || '').trim(),
+      sid: (data.sid || '').trim(),
+      klass: (data.klass || '').trim(),
+      note: (data.note || '').trim(),
+      createdAt: new Date().toISOString().slice(0, 10)
+    };
+    if (!s.name) return null;
+    state.students.push(s);
+    save();
+    return s;
+  }
+  function updateStudent(id, patch) {
+    var s = getStudent(id);
+    if (!s) return null;
+    Object.keys(patch).forEach(function (k) { s[k] = patch[k]; });
+    save();
+    return s;
+  }
+  function removeStudent(id) {
+    state.students = state.students.filter(function (s) { return s.id !== id; });
+    state.submissions = state.submissions.filter(function (x) { return x.studentId !== id; });
+    save();
+  }
+
+  // ---------- 作業／試卷記錄 ----------
+  function submissions(studentId) {
+    var list = studentId
+      ? state.submissions.filter(function (x) { return x.studentId === studentId; })
+      : state.submissions.slice();
+    return list.sort(function (a, b) {
+      return (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+  }
+  function getSubmission(id) {
+    for (var i = 0; i < state.submissions.length; i++) if (state.submissions[i].id === id) return state.submissions[i];
+    return null;
+  }
+  function addSubmission(data) {
+    var rec = clone(data);
+    rec.id = uid('sub');
+    rec.createdAt = new Date().toISOString();
+    state.submissions.push(rec);
+    save();
+    return rec;
+  }
+  function updateSubmission(id, patch) {
+    var rec = getSubmission(id);
+    if (!rec) return null;
+    Object.keys(patch).forEach(function (k) { rec[k] = patch[k]; });
+    save();
+    return rec;
+  }
+  function removeSubmission(id) {
+    state.submissions = state.submissions.filter(function (x) { return x.id !== id; });
+    save();
+  }
+
+  // ---------- 設定 / 知識點 ----------
+  function settings() { return state.settings; }
+  function saveSettings(patch) {
+    Object.keys(patch).forEach(function (k) { state.settings[k] = patch[k]; });
+    save();
+  }
+  function topics() { return global.DSEData.TOPICS.concat(state.customTopics || []); }
+  function topicById(id) {
+    var all = topics();
+    for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+    return null;
+  }
+  function addCustomTopic(t) {
+    t.id = uid('KP');
+    state.customTopics.push(t);
+    save();
+    return t;
+  }
+
+  // ---------- 統計 ----------
+  function scoreOf(rec) {
+    if (!rec.items || !rec.items.length) return { got: rec.score || 0, max: rec.totalScore || 0 };
+    var got = 0, max = 0;
+    rec.items.forEach(function (it) {
+      got += Number(it.points) || 0;
+      max += Number(it.maxPoints) || 0;
+    });
+    return { got: got, max: max };
+  }
+  function pct(got, max) { return max > 0 ? Math.round((got / max) * 100) : 0; }
+
+  // 單一學生：各知識點掌握度
+  function topicMastery(studentId, opts) {
+    opts = opts || {};
+    var recs = submissions(studentId).slice().reverse(); // 由舊到新
+    if (opts.recent) recs = recs.slice(-opts.recent);
+    var map = {};
+    recs.forEach(function (rec) {
+      (rec.items || []).forEach(function (it) {
+        if (!it.knowledgeId) return;
+        if (!map[it.knowledgeId]) map[it.knowledgeId] = { topicId: it.knowledgeId, got: 0, max: 0, attempts: 0, correct: 0 };
+        var m = map[it.knowledgeId];
+        m.got += Number(it.points) || 0;
+        m.max += Number(it.maxPoints) || 0;
+        m.attempts += 1;
+        if (it.correct) m.correct += 1;
+      });
+    });
+    return Object.keys(map).map(function (k) {
+      var m = map[k];
+      m.rate = pct(m.got, m.max);
+      return m;
+    }).sort(function (a, b) { return a.rate - b.rate; });
+  }
+
+  // 單一學生：三大範疇掌握度
+  function strandMastery(studentId, opts) {
+    var mastery = topicMastery(studentId, opts);
+    return global.DSEData.STRANDS.map(function (st) {
+      var got = 0, max = 0, count = 0;
+      mastery.forEach(function (m) {
+        var t = topicById(m.topicId);
+        if (t && t.strand === st.id) { got += m.got; max += m.max; count++; }
+      });
+      return { strandId: st.id, name: st.name, short: st.short, color: st.color, rate: pct(got, max), topics: count, got: got, max: max };
+    });
+  }
+
+  // 單一學生：歷次表現（由舊到新）
+  function timeline(studentId) {
+    return submissions(studentId).slice().reverse().map(function (rec) {
+      var s = scoreOf(rec);
+      var per = { na: { got: 0, max: 0 }, ms: { got: 0, max: 0 }, dh: { got: 0, max: 0 } };
+      (rec.items || []).forEach(function (it) {
+        var t = topicById(it.knowledgeId);
+        if (!t || !per[t.strand]) return;
+        per[t.strand].got += Number(it.points) || 0;
+        per[t.strand].max += Number(it.maxPoints) || 0;
+      });
+      return {
+        id: rec.id, date: rec.date, title: rec.title, type: rec.type,
+        got: s.got, max: s.max, pct: pct(s.got, s.max), source: rec.source,
+        na: per.na.max ? pct(per.na.got, per.na.max) : null,
+        ms: per.ms.max ? pct(per.ms.got, per.ms.max) : null,
+        dh: per.dh.max ? pct(per.dh.got, per.dh.max) : null
+      };
+    });
+  }
+
+  // 全班概覽
+  function classOverview() {
+    var stus = students();
+    var recs = state.submissions;
+    var avg = 0, atRisk = 0, improving = 0;
+    var weakMap = {};
+    stus.forEach(function (s) {
+      var tl = timeline(s.id);
+      if (!tl.length) return;
+      var latest = tl[tl.length - 1];
+      var recent = tl.slice(-2);
+      var overall = pct(
+        recent.reduce(function (a, x) { return a + x.got; }, 0),
+        recent.reduce(function (a, x) { return a + x.max; }, 0)
+      );
+      avg += overall;
+      if (overall < 55) atRisk++;
+      if (tl.length >= 2 && latest.pct > tl[tl.length - 2].pct) improving++;
+      topicMastery(s.id).forEach(function (m) {
+        if (m.rate < 60) {
+          if (!weakMap[m.topicId]) weakMap[m.topicId] = { topicId: m.topicId, students: 0, totalRate: 0 };
+          weakMap[m.topicId].students++;
+          weakMap[m.topicId].totalRate += m.rate;
+        }
+      });
+    });
+    var weakTopics = Object.keys(weakMap).map(function (k) {
+      var w = weakMap[k];
+      w.avgRate = Math.round(w.totalRate / w.students);
+      w.topic = topicById(k);
+      return w;
+    }).sort(function (a, b) { return b.students - a.students || a.avgRate - b.avgRate; });
+    return {
+      studentCount: stus.length,
+      submissionCount: recs.length,
+      avgMastery: stus.length ? Math.round(avg / stus.length) : 0,
+      atRisk: atRisk,
+      improving: improving,
+      weakTopics: weakTopics,
+      latestDate: recs.length ? recs.map(function (r) { return r.date; }).sort().pop() : ''
+    };
+  }
+
+  // 全班 × 知識點 熱力圖
+  function heatmap(limit) {
+    var stus = students();
+    var counts = {};
+    state.submissions.forEach(function (rec) {
+      (rec.items || []).forEach(function (it) { if (it.knowledgeId) counts[it.knowledgeId] = (counts[it.knowledgeId] || 0) + 1; });
+    });
+    var topicIds = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, limit || 12);
+    var rows = stus.map(function (s) {
+      var m = {};
+      topicMastery(s.id, { recent: 3 }).forEach(function (x) { m[x.topicId] = x.rate; });
+      return {
+        student: s,
+        cells: topicIds.map(function (id) { return (typeof m[id] === 'number') ? m[id] : null; })
+      };
+    });
+    return { topicIds: topicIds, rows: rows };
+  }
+
+  // ---------- 備份 ----------
+  function exportJSON() { return JSON.stringify(state, null, 2); }
+  function importJSON(text) {
+    var obj = JSON.parse(text);
+    if (!obj.students || !obj.submissions) throw new Error('檔案格式不正確：缺少學生或作業資料。');
+    state = obj;
+    if (!state.customTopics) state.customTopics = [];
+    if (!state.settings) state.settings = { apiEndpoint: '', apiKey: '', model: 'gpt-4o-mini', teacher: '', school: '' };
+    save();
+  }
+  function resetDemo() { state = global.DSEData.buildDemoData(); save(); }
+  function clearAll() {
+    state = { version: 1, students: [], submissions: [], settings: state.settings, customTopics: state.customTopics || [], demoLoaded: false, seededAt: new Date().toISOString() };
+    save();
+  }
+
+  global.DSEStore = {
+    init: init, save: save, raw: raw, warning: warning, isMemoryOnly: isMemoryOnly, uid: uid,
+    students: students, getStudent: getStudent, addStudent: addStudent, updateStudent: updateStudent, removeStudent: removeStudent,
+    submissions: submissions, getSubmission: getSubmission, addSubmission: addSubmission, updateSubmission: updateSubmission, removeSubmission: removeSubmission,
+    settings: settings, saveSettings: saveSettings, topics: topics, topicById: topicById, addCustomTopic: addCustomTopic,
+    scoreOf: scoreOf, pct: pct, topicMastery: topicMastery, strandMastery: strandMastery, timeline: timeline,
+    classOverview: classOverview, heatmap: heatmap,
+    exportJSON: exportJSON, importJSON: importJSON, resetDemo: resetDemo, clearAll: clearAll
+  };
+})(window);
+
+</script>
+<script>
+/* ---- analysis.js ---- */
+/* ============================================================
+   analysis.js — 試卷影像處理、知識點分析、教學建議引擎
+   全域物件：window.DSEAnalysis
+   ============================================================ */
+(function (global) {
+  'use strict';
+
+  var MAX_SIDE = 1500;
+  var MAX_FILE = 12 * 1024 * 1024;
+
+  // ---------- 影像 ----------
+  function compressImage(file) {
+    return new Promise(function (resolve, reject) {
+      if (!file || !/^image\//.test(file.type)) { reject(new Error('只接受圖片檔案（JPG / PNG / HEIC 截圖等）。')); return; }
+      if (file.size > MAX_FILE) { reject(new Error('圖片超過 12 MB，請先壓縮或分張上傳。')); return; }
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error('讀取圖片失敗，請重試。')); };
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error('瀏覽器無法解讀這張圖片，請改用 JPG / PNG。')); };
+        img.onload = function () {
+          var w = img.naturalWidth, h = img.naturalHeight;
+          var scale = Math.min(1, MAX_SIDE / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+          var cv = document.createElement('canvas');
+          cv.width = cw; cv.height = ch;
+          var ctx = cv.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, cw, ch);
+          ctx.drawImage(img, 0, 0, cw, ch);
+          var dataUrl;
+          try { dataUrl = cv.toDataURL('image/jpeg', 0.72); }
+          catch (e) { reject(new Error('圖片處理失敗：' + e.message)); return; }
+          resolve({ dataUrl: dataUrl, name: file.name || '試卷照片', width: cw, height: ch, size: file.size });
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- Prompt ----------
+  function buildPrompt(topicList, paperHint) {
+    var kb = topicList.map(function (t) {
+      return t.id + '｜' + t.name + '｜' + (t.k || []).join('/');
+    }).join('\n');
+    return [
+      '你是一位香港中學數學科教師的批改助理。請仔細閱讀上傳的試卷／作業照片（含題目、學生作答、老師批改符號與分數）。',
+      '任務：逐題辨識考核的知識點、判斷學生答對與否、讀取該題得分，並用繁體中文給出簡短錯因。',
+      '',
+      '【知識點代碼表】只能使用下表中的 id，不得自行創造：',
+      kb,
+      '',
+      '【輸出格式】只輸出一個 JSON 物件，不要任何解說文字、不要 Markdown 程式碼框：',
+      '{"paperTitle":"試卷名稱（若看不清則留空）","totalScore":100,',
+      '"items":[{"qno":"1","knowledgeId":"NA08","correct":false,"points":4,"maxPoints":10,"note":"移項時未變號"}],',
+      '"summary":"整體表現的一至兩句繁體中文描述"}',
+      '',
+      '規則：',
+      '1. 一題一個物件；同一大題下的小題請分開，qno 用「1a」「1b」等形式。',
+      '2. correct 為 true／false；部分正確時 correct=false，points 給實際得分。',
+      '3. points 與 maxPoints 為數字；若照片上看不見分數，maxPoints 統一給 10，points 依對錯給 10 或 0。',
+      '4. 若某題無法對應表中任何知識點，knowledgeId 填 "UNKNOWN"。',
+      '5. 若照片模糊或不是試卷，回傳 {"error":"簡述原因"}。',
+      paperHint ? ('6. 補充資料：' + paperHint) : ''
+    ].filter(Boolean).join('\n');
+  }
+
+  function extractJSON(text) {
+    if (!text) throw new Error('模型沒有回傳內容。');
+    var s = String(text).trim();
+    s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    var first = s.indexOf('{'), last = s.lastIndexOf('}');
+    if (first < 0 || last <= first) throw new Error('模型回傳的不是 JSON，請改用「貼上分析結果」並檢查輸出。');
+    return JSON.parse(s.slice(first, last + 1));
+  }
+
+  function findTopic(token, topicList) {
+    if (!token) return null;
+    var key = String(token).trim().toUpperCase();
+    for (var i = 0; i < topicList.length; i++) if (topicList[i].id.toUpperCase() === key) return topicList[i].id;
+    var lower = String(token).trim().toLowerCase();
+    for (var j = 0; j < topicList.length; j++) {
+      var t = topicList[j];
+      if (t.name.toLowerCase() === lower) return t.id;
+      if ((t.k || []).some(function (w) { return String(w).toLowerCase() === lower; })) return t.id;
+    }
+    for (var m = 0; m < topicList.length; m++) {
+      var q = topicList[m];
+      if (q.name.toLowerCase().indexOf(lower) >= 0 || lower.indexOf(q.name.toLowerCase()) >= 0) return q.id;
+    }
+    return 'UNKNOWN';
+  }
+
+  function normalizeResult(obj, topicList) {
+    if (!obj || obj.error) throw new Error(obj && obj.error ? obj.error : '模型回傳格式不正確。');
+    var rawItems = obj.items || obj.questions || obj.results || [];
+    if (!Array.isArray(rawItems) || !rawItems.length) throw new Error('分析結果中沒有題目資料。');
+    var items = rawItems.map(function (it, idx) {
+      var max = Number(it.maxPoints != null ? it.maxPoints : it.max) || 10;
+      var got = Number(it.points != null ? it.points : it.score);
+      if (isNaN(got)) got = it.correct ? max : 0;
+      got = Math.max(0, Math.min(max, got));
+      var kid = findTopic(it.knowledgeId || it.topicId || it.kp || it.knowledge, topicList);
+      var correct = (it.correct === true || it.correct === 'true' || it.isCorrect === true) || got >= max;
+      return {
+        qno: String(it.qno != null ? it.qno : it.number != null ? it.number : idx + 1),
+        knowledgeId: kid,
+        correct: !!correct,
+        points: got,
+        maxPoints: max,
+        note: String(it.note || it.reason || '').slice(0, 80)
+      };
+    });
+    return {
+      title: String(obj.paperTitle || obj.title || '').slice(0, 60),
+      totalScore: Number(obj.totalScore) || items.reduce(function (a, b) { return a + b.maxPoints; }, 0),
+      items: items,
+      summary: String(obj.summary || '').slice(0, 300),
+      source: 'ai'
+    };
+  }
+
+  // ---------- AI 視覺分析（自攜 API）----------
+  function analyzeWithAI(images, settings, topicList, paperHint) {
+    return new Promise(function (resolve, reject) {
+      var endpoint = (settings.apiEndpoint || '').trim();
+      var apiKey = (settings.apiKey || '').trim();
+      if (!apiKey) { reject(new Error('尚未設定 API 金鑰。請到「設定」填寫，或改用「貼上分析結果」／「示範分析」。')); return; }
+      if (!images || !images.length) { reject(new Error('請先上傳至少一張試卷照片。')); return; }
+
+      var url = endpoint || 'https://api.openai.com/v1/chat/completions';
+      var content = [{ type: 'text', text: buildPrompt(topicList, paperHint) }];
+      images.forEach(function (im) {
+        content.push({ type: 'image_url', image_url: { url: im.dataUrl, detail: 'high' } });
+      });
+
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = controller ? setTimeout(function () { controller.abort(); }, 120000) : null;
+
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+        body: JSON.stringify({
+          model: (settings.model || 'gpt-4o-mini').trim(),
+          messages: [{ role: 'user', content: content }],
+          temperature: 0.1,
+          max_tokens: 3000
+        }),
+        signal: controller ? controller.signal : undefined
+      }).then(function (res) {
+        return res.text().then(function (text) {
+          if (!res.ok) {
+            var msg = 'API 回應 ' + res.status;
+            try { var e = JSON.parse(text); msg += '：' + (e.error && e.error.message ? e.error.message : text.slice(0, 160)); }
+            catch (x) { msg += '：' + text.slice(0, 160); }
+            throw new Error(msg);
+          }
+          var data = JSON.parse(text);
+          var out = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+          resolve(normalizeResult(extractJSON(out), topicList));
+        });
+      }).catch(function (err) {
+        if (err.name === 'AbortError') reject(new Error('分析逾時（120 秒），請減少圖片張數或稍後重試。'));
+        else if (err instanceof TypeError) reject(new Error('無法連線到 API 端點。可能是網路問題或該服務不允許瀏覽器直接呼叫（CORS），可改用「貼上分析結果」。'));
+        else reject(err);
+      }).then(function () { if (timer) clearTimeout(timer); });
+    });
+  }
+
+  // ---------- 貼上分析結果 ----------
+  function parsePasted(text, topicList) {
+    return normalizeResult(extractJSON(text), topicList);
+  }
+
+  // ---------- 示範分析 ----------
+  var DEMO_POOL = ['NA07', 'NA08', 'NA09', 'NA10', 'NA11', 'NA05', 'NA06', 'MS01', 'MS02', 'MS04', 'MS06', 'MS07', 'MS08', 'MS10', 'DH02', 'DH03', 'DH04'];
+  var DEMO_NOTES = ['移項時忘記變號', '未化至最簡', '公式代入正確但計算出錯', '單位遺漏', '未寫出解題步驟', '混淆對應邊', '答案合理但理由不足', '括號展開符號錯誤'];
+
+  function analyzeDemo(images, seedText) {
+    var seed = global.DSEData.hashString((seedText || 'demo') + '|' + images.map(function (i) { return i.name; }).join('|'));
+    var rnd = global.DSEData.makeRandom(seed);
+    var pool = DEMO_POOL.slice();
+    var picked = [];
+    for (var i = 0; i < 8; i++) {
+      var idx = Math.floor(rnd() * pool.length);
+      picked.push(pool.splice(idx, 1)[0]);
+    }
+    var items = picked.map(function (kid, qi) {
+      var correct = rnd() < 0.62;
+      var partial = !correct && rnd() < 0.35;
+      var points = correct ? 10 : (partial ? Math.round(3 + rnd() * 3) : 0);
+      return {
+        qno: String(qi + 1), knowledgeId: kid, correct: correct,
+        points: points, maxPoints: 10,
+        note: correct ? '' : DEMO_NOTES[Math.floor(rnd() * DEMO_NOTES.length)]
+      };
+    });
+    return {
+      title: '示範試卷｜中二 數學單元測驗',
+      totalScore: 80,
+      items: items,
+      summary: '這是系統產生的示範分析，用於展示完整流程；並非由照片實際辨識，請在下方逐題核對或修改後才存入學生檔案。',
+      source: 'demo'
+    };
+  }
+
+  function emptyResult() {
+    return { title: '', totalScore: 0, items: [], summary: '', source: 'manual' };
+  }
+
+  function recompute(result) {
+    var max = result.items.reduce(function (a, b) { return a + (Number(b.maxPoints) || 0); }, 0);
+    var got = result.items.reduce(function (a, b) { return a + (Number(b.points) || 0); }, 0);
+    result.totalScore = max;
+    result.score = got;
+    return { got: got, max: max };
+  }
+
+  // ---------- 針對性建議引擎 ----------
+  function levelFor(rate) {
+    if (rate < 45) return 'critical';
+    if (rate < 65) return 'watch';
+    return 'good';
+  }
+
+  function generateAdvice(studentId) {
+    var S = global.DSEStore;
+    var tl = S.timeline(studentId);
+    var advice = [];
+    if (!tl.length) {
+      return [{
+        level: 'watch', icon: 'info', title: '資料不足，尚未能評估能力變化',
+        body: '這位學生還沒有任何作業記錄。上傳第一份試卷並完成知識點標記後，系統便會建立能力基線，之後每次作業會自動更新趨勢。',
+        actions: ['先上傳一份最近的測驗或家課', '確認逐題的知識點與得分無誤'], topicIds: []
+      }];
+    }
+
+    var latest = tl[tl.length - 1];
+    var prev = tl.length >= 2 ? tl[tl.length - 2] : null;
+    var mastery = S.topicMastery(studentId);
+    var strands = S.strandMastery(studentId);
+
+    // 1. 整體趨勢
+    if (prev) {
+      var delta = latest.pct - prev.pct;
+      if (delta <= -8) {
+        var urgent = latest.pct < 70;
+        advice.push({
+          level: urgent ? 'critical' : 'watch', icon: 'down',
+          title: urgent ? '近期表現下滑 ' + Math.abs(delta) + ' 個百分點，建議優先跟進'
+                        : '近期得分率回落 ' + Math.abs(delta) + ' 個百分點，宜留意',
+          body: '最近一次「' + latest.title + '」得分率 ' + latest.pct + '%，較上一次「' + prev.title + '」的 ' + prev.pct + '% 明顯回落。' + (urgent ? '建議先比對兩份卷的知識點重疊處，判斷是單一單元未掌握，還是整體粗心與時間分配問題。' : '目前仍處於較高水平，較可能是單次卷難度或偶發失誤，建議先觀察下一次表現再決定是否介入。'),
+          actions: ['與學生進行 5 分鐘個別回顧，請他說出最沒把握的兩題', '調出上一次同範圍題目作對照練習', '下一次作業後再觀察一次，確認是否為偶發'],
+          topicIds: []
+        });
+      } else if (delta >= 8) {
+        advice.push({
+          level: 'good', icon: 'up', title: '近期進步 ' + delta + ' 個百分點，宜鞏固並加深',
+          body: '由 ' + prev.pct + '% 提升至 ' + latest.pct + '%。目前的教學介入有效，建議維持節奏，並給予少量跨單元的綜合題，避免只會單一題型。',
+          actions: ['給予 2–3 題需要結合兩個知識點的應用題', '請學生用自己的話寫下解題關鍵，鞏固後設認知'],
+          topicIds: []
+        });
+      } else {
+        advice.push({
+          level: 'watch', icon: 'flat', title: '整體表現平穩，維持在 ' + latest.pct + '%',
+          body: '近兩次得分率變化在 8 個百分點以內。若要突破瓶頸，建議針對底下標示的弱點知識點作集中訓練，而不是平均分配練習量。',
+          actions: ['把練習時間集中於最弱的 2 個知識點', '兩週後以同難度短測量度成效'],
+          topicIds: []
+        });
+      }
+    }
+
+    // 2. 弱點知識點（依累計作答紀錄，由低至高）
+    // 作答次數多的弱點證據較強，優先排列
+    var weak = mastery.filter(function (m) { return m.attempts >= 1 && m.rate < 60; })
+      .sort(function (a, b) { return (b.attempts - a.attempts) || (a.rate - b.rate); })
+      .slice(0, 3);
+    weak.forEach(function (m) {
+      var t = S.topicById(m.topicId);
+      if (!t) return;
+      advice.push({
+        level: levelFor(m.rate), icon: 'target', title: '重點補救：' + t.name + '（累計掌握度 ' + m.rate + '%）',
+        body: t.r + '（依 ' + m.attempts + ' 次作答、累計 ' + m.got + '/' + m.max + ' 分。）' + (m.attempts === 1 ? ' 目前只有 1 次作答紀錄，建議再以一次短測確認是否為穩定弱點。' : ''),
+        actions: [
+          '安排 6–8 題由淺入深的階梯練習，第一層只考單一步驟',
+          '下次課堂以 3 分鐘迷你小測即時回饋',
+          '相關前置知識：' + (t.p && t.p.length ? t.p.map(function (id) { var x = S.topicById(id); return x ? x.name : id; }).join('、') : '無，可直接補救')
+        ],
+        topicIds: [t.id]
+      });
+    });
+
+    // 3. 連續錯誤（誤概念訊號）
+    var recs = S.submissions(studentId).slice().reverse();
+    var lastTwo = recs.slice(-2);
+    var repeated = [];
+    if (lastTwo.length === 2) {
+      var firstMap = {};
+      (lastTwo[0].items || []).forEach(function (it) { firstMap[it.knowledgeId] = (firstMap[it.knowledgeId] || []).concat(it.correct); });
+      (lastTwo[1].items || []).forEach(function (it) {
+        if (it.correct === false && firstMap[it.knowledgeId] && firstMap[it.knowledgeId].indexOf(true) < 0) {
+          if (repeated.indexOf(it.knowledgeId) < 0) repeated.push(it.knowledgeId);
+        }
+      });
+    }
+    repeated.slice(0, 2).forEach(function (kid) {
+      var t = S.topicById(kid);
+      if (!t) return;
+      advice.push({
+        level: 'critical', icon: 'repeat', title: '連續兩次出錯：' + t.name + '，可能是概念性誤解',
+        body: '同一知識點在最近兩份作業中都未答對，較大機會是概念未建立而非一時粗心。建議暫停同類題海，改用具體操作或圖像重新建立概念。',
+        actions: ['進行一次一對一診斷：請學生邊做邊說出想法', '找出具體的錯誤類型（概念／程序／計算／讀題）並記錄', '用一道數字簡單的同構題確認是否真的理解'],
+        topicIds: [kid]
+      });
+    });
+
+    // 4. 範疇落差
+    var valid = strands.filter(function (s) { return s.max > 0; });
+    if (valid.length >= 2) {
+      var best = valid.reduce(function (a, b) { return a.rate > b.rate ? a : b; });
+      var worst = valid.reduce(function (a, b) { return a.rate < b.rate ? a : b; });
+      if (best.rate - worst.rate >= 20) {
+        advice.push({
+          level: 'watch', icon: 'balance', title: '範疇發展不均：' + best.short + ' ' + best.rate + '% ／ ' + worst.short + ' ' + worst.rate + '%',
+          body: '三大範疇相差 ' + (best.rate - worst.rate) + ' 個百分點。DSE 試卷跨範疇綜合命題，建議在 ' + worst.name + ' 安排固定比例的恆常練習，避免強項掩蓋弱項。',
+          actions: ['每週保留 15 分鐘 ' + worst.short + ' 專項練習', '在綜合卷中刻意加入該範疇題目，觀察遷移效果'],
+          topicIds: []
+        });
+      }
+    }
+
+    // 5. 高能力增潤
+    if (latest.pct >= 85 && !weak.length) {
+      advice.push({
+        level: 'good', icon: 'star', title: '已達熟練水平，建議提供增潤任務',
+        body: '最近一次得分率 ' + latest.pct + '%，且沒有明顯弱點知識點。可安排開放式探究題或跨範疇綜合題，維持挑戰度。',
+        actions: ['給予一題需要自訂解題策略的探究題', '邀請學生向同儕講解一道綜合題'],
+        topicIds: []
+      });
+    }
+
+    // 6. 資料量提示
+    if (tl.length < 3) {
+      advice.push({
+        level: 'watch', icon: 'info', title: '再累積 ' + (3 - tl.length) + ' 份作業，趨勢會更可靠',
+        body: '目前只有 ' + tl.length + ' 份記錄，折線圖的變化容易受單次難度影響。建議涵蓋不同單元後再解讀長期走勢。',
+        actions: ['上傳下一次家課或測驗', '每次都完成逐題知識點標記'],
+        topicIds: []
+      });
+    }
+
+    var order = { critical: 0, watch: 1, good: 2 };
+    // 同層級內，具體弱點／預警比「整體平穩」更值得先看
+    var priority = { repeat: 0, down: 0, target: 1, balance: 2, flat: 3, info: 4, up: 4, star: 5 };
+    return advice.sort(function (a, b) {
+      return (order[a.level] - order[b.level]) || ((priority[a.icon] == null ? 2 : priority[a.icon]) - (priority[b.icon] == null ? 2 : priority[b.icon]));
+    });
+  }
+
+  global.DSEAnalysis = {
+    MAX_FILE: MAX_FILE,
+    compressImage: compressImage,
+    analyzeWithAI: analyzeWithAI,
+    parsePasted: parsePasted,
+    analyzeDemo: analyzeDemo,
+    emptyResult: emptyResult,
+    recompute: recompute,
+    normalizeResult: normalizeResult,
+    generateAdvice: generateAdvice,
+    buildPrompt: buildPrompt
+  };
+})(window);
+
+</script>
+<script>
+/* ---- charts.js ---- */
+/* ============================================================
+   charts.js — 零依賴 SVG 圖表（折線／雷達／長條／熱力／環圈／迷你線）
+   全域物件：window.DSECharts
+   ============================================================ */
+(function (global) {
+  'use strict';
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#22323e', MUTED = '#7c8790', GRID = '#e6e2da', PAPER = '#fbfaf7';
+
+  function el(tag, attrs, text) {
+    var node = document.createElementNS(NS, tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { if (attrs[k] != null) node.setAttribute(k, attrs[k]); });
+    if (text != null) node.textContent = text;
+    return node;
+  }
+  function add(parent, tag, attrs, text) { var n = el(tag, attrs, text); parent.appendChild(n); return n; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+
+  function mountTip(host) {
+    var tip = document.createElement('div');
+    tip.className = 'chart-tip';
+    host.appendChild(tip);
+    host.classList.add('chart-host');
+    return {
+      show: function (evt, html) {
+        tip.innerHTML = html;
+        tip.style.opacity = '1';
+        var r = host.getBoundingClientRect();
+        var x = evt.clientX - r.left + 12;
+        var y = evt.clientY - r.top - 10;
+        if (x + 190 > r.width) x = evt.clientX - r.left - 200;
+        tip.style.left = Math.max(4, x) + 'px';
+        tip.style.top = Math.max(4, y) + 'px';
+      },
+      hide: function () { tip.style.opacity = '0'; }
+    };
+  }
+  function bindTips(svg, tip) {
+    svg.addEventListener('mousemove', function (e) {
+      var t = e.target;
+      while (t && t !== svg && !t.getAttribute('data-tip')) t = t.parentNode;
+      if (t && t !== svg && t.getAttribute('data-tip')) tip.show(e, t.getAttribute('data-tip'));
+      else tip.hide();
+    });
+    svg.addEventListener('mouseleave', function () { tip.hide(); });
+  }
+  function frame(host, w, h) {
+    host.innerHTML = '';
+    var svg = el('svg', { viewBox: '0 0 ' + w + ' ' + h, width: '100%', height: h, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
+    svg.style.display = 'block';
+    svg.style.overflow = 'visible';
+    host.appendChild(svg);
+    return { svg: svg, tip: mountTip(host) };
+  }
+  function txt(parent, x, y, s, opts) {
+    opts = opts || {};
+    return add(parent, 'text', {
+      x: x, y: y, fill: opts.fill || MUTED,
+      'font-size': opts.size || 11,
+      'text-anchor': opts.anchor || 'start',
+      'font-weight': opts.weight || '400',
+      'font-family': opts.family || 'inherit',
+      'letter-spacing': opts.spacing || '0'
+    }, s);
+  }
+
+  function lerpColor(a, b, t) {
+    function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
+    var A = hex(a), B = hex(b);
+    return 'rgb(' + A.map(function (v, i) { return Math.round(v + (B[i] - v) * t); }).join(',') + ')';
+  }
+  function rateColor(r) {
+    if (r == null) return '#eeece6';
+    if (r < 50) return lerpColor('#bd4a3e', '#e0a24c', Math.max(0, r / 50));
+    return lerpColor('#e0a24c', '#2f7d68', Math.min(1, (r - 50) / 50));
+  }
+  function rateLabel(r) {
+    if (r == null) return '欠數據';
+    if (r < 45) return '需補救';
+    if (r < 65) return '待鞏固';
+    if (r < 80) return '尚可';
+    return '熟練';
+  }
+
+  // ---------- 折線圖 ----------
+  function line(host, opts) {
+    var W = opts.width || 700, H = opts.height || 250;
+    var f = frame(host, W, H), svg = f.svg;
+    var L = 42, R = 18, T = 14, B = 34;
+    var iw = W - L - R, ih = H - T - B;
+    var labels = opts.labels || [], series = opts.series || [];
+    var yMax = opts.yMax || 100, yMin = opts.yMin || 0;
+    var n = labels.length;
+    if (!n) { txt(svg, W / 2, H / 2, '暫無數據', { anchor: 'middle', size: 13 }); return; }
+    var X = function (i) { return n === 1 ? L + iw / 2 : L + (iw * i) / (n - 1); };
+    var Y = function (v) { return T + ih - ((v - yMin) / (yMax - yMin)) * ih; };
+
+    var ticks = opts.ticks || [0, 25, 50, 75, 100];
+    ticks.forEach(function (v) {
+      add(svg, 'line', { x1: L, y1: Y(v), x2: W - R, y2: Y(v), stroke: v === 0 ? '#cfc9be' : GRID, 'stroke-width': 1 });
+      txt(svg, L - 9, Y(v) + 4, String(v), { anchor: 'end', size: 10 });
+    });
+    if (opts.bands !== false) {
+      add(svg, 'rect', { x: L, y: Y(65), width: iw, height: Y(45) - Y(65), fill: '#bd4a3e', opacity: 0.035 });
+      add(svg, 'rect', { x: L, y: Y(100), width: iw, height: Y(80) - Y(100), fill: '#2f7d68', opacity: 0.035 });
+    }
+    labels.forEach(function (lb, i) {
+      var every = n > 8 ? Math.ceil(n / 6) : 1;
+      if (i % every === 0 || i === n - 1) txt(svg, X(i), H - 10, lb, { anchor: 'middle', size: 10 });
+    });
+
+    series.forEach(function (s, si) {
+      var color = s.color || ['#213b52', '#c0552f', '#2f7d68'][si % 3];
+      var segs = [], cur = [];
+      s.values.forEach(function (v, i) {
+        if (v == null) { if (cur.length) segs.push(cur); cur = []; return; }
+        cur.push([X(i), Y(v), v, i]);
+      });
+      if (cur.length) segs.push(cur);
+
+      if (si === 0 && opts.area !== false) {
+        var gid = 'grad-' + Math.random().toString(36).slice(2, 8);
+        var defs = add(svg, 'defs', {});
+        var lg = add(defs, 'linearGradient', { id: gid, x1: '0', y1: '0', x2: '0', y2: '1' });
+        add(lg, 'stop', { offset: '0%', 'stop-color': color, 'stop-opacity': '0.16' });
+        add(lg, 'stop', { offset: '100%', 'stop-color': color, 'stop-opacity': '0' });
+        segs.forEach(function (seg) {
+          if (seg.length < 2) return;
+          var d = 'M' + seg[0][0] + ',' + Y(yMin) + ' L' + seg.map(function (p) { return p[0] + ',' + p[1]; }).join(' L') + ' L' + seg[seg.length - 1][0] + ',' + Y(yMin) + ' Z';
+          add(svg, 'path', { d: d, fill: 'url(#' + gid + ')' });
+        });
+      }
+      segs.forEach(function (seg) {
+        if (seg.length > 1) {
+          add(svg, 'path', {
+            d: 'M' + seg.map(function (p) { return p[0] + ',' + p[1]; }).join(' L'),
+            fill: 'none', stroke: color, 'stroke-width': s.dashed ? 1.8 : 2.6,
+            'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+            'stroke-dasharray': s.dashed ? '5 5' : null
+          });
+        }
+      });
+      s.values.forEach(function (v, i) {
+        if (v == null) return;
+        add(svg, 'circle', { cx: X(i), cy: Y(v), r: s.dashed ? 3 : 4, fill: PAPER, stroke: color, 'stroke-width': 2 });
+        add(svg, 'circle', {
+          cx: X(i), cy: Y(v), r: 13, fill: 'transparent', style: 'cursor:crosshair',
+          'data-tip': '<strong>' + esc(labels[i]) + '</strong><br>' + esc(s.name) + '：<b>' + v + '%</b>'
+        });
+      });
+    });
+    bindTips(svg, f.tip);
+  }
+
+  // ---------- 雷達圖 ----------
+  function radar(host, opts) {
+    var W = opts.width || 360, H = opts.height || 300;
+    var f = frame(host, W, H), svg = f.svg;
+    var axes = opts.axes || [];
+    if (!axes.length) return;
+    var cx = W / 2, cy = H / 2 + 6, R = Math.min(W, H) / 2 - 52;
+    var N = axes.length;
+    function pt(i, ratio) {
+      var a = -Math.PI / 2 + (Math.PI * 2 * i) / N;
+      return [cx + Math.cos(a) * R * ratio, cy + Math.sin(a) * R * ratio];
+    }
+    [0.25, 0.5, 0.75, 1].forEach(function (r) {
+      var pts = axes.map(function (_, i) { return pt(i, r).join(','); }).join(' ');
+      add(svg, 'polygon', { points: pts, fill: r === 1 ? '#f6f4ee' : 'none', stroke: GRID, 'stroke-width': 1 });
+    });
+    axes.forEach(function (a, i) {
+      var p = pt(i, 1);
+      add(svg, 'line', { x1: cx, y1: cy, x2: p[0], y2: p[1], stroke: GRID, 'stroke-width': 1 });
+      var lp = pt(i, 1.22);
+      txt(svg, lp[0], lp[1] + 4, a.label, { anchor: Math.abs(lp[0] - cx) < 12 ? 'middle' : (lp[0] > cx ? 'start' : 'end'), size: 11, weight: '600', fill: INK });
+      txt(svg, lp[0], lp[1] + 18, a.value + '%', { anchor: Math.abs(lp[0] - cx) < 12 ? 'middle' : (lp[0] > cx ? 'start' : 'end'), size: 10 });
+    });
+    var color = opts.color || '#213b52';
+    var dataPts = axes.map(function (a, i) { return pt(i, Math.max(0.02, a.value / 100)); });
+    add(svg, 'polygon', {
+      points: dataPts.map(function (p) { return p.join(','); }).join(' '),
+      fill: color, 'fill-opacity': '0.16', stroke: color, 'stroke-width': 2.2, 'stroke-linejoin': 'round'
+    });
+    dataPts.forEach(function (p, i) {
+      add(svg, 'circle', { cx: p[0], cy: p[1], r: 4, fill: PAPER, stroke: color, 'stroke-width': 2 });
+      add(svg, 'circle', {
+        cx: p[0], cy: p[1], r: 14, fill: 'transparent', style: 'cursor:crosshair',
+        'data-tip': '<strong>' + esc(axes[i].label) + '</strong><br>掌握度 <b>' + axes[i].value + '%</b> · ' + rateLabel(axes[i].value)
+      });
+    });
+    bindTips(svg, f.tip);
+  }
+
+  // ---------- 橫向長條 ----------
+  function bars(host, opts) {
+    var items = opts.items || [];
+    var W = opts.width || 640, rowH = opts.rowH || 30, H = Math.max(40, items.length * rowH + 16);
+    var f = frame(host, W, H), svg = f.svg;
+    if (!items.length) { txt(svg, W / 2, 30, '暫無數據', { anchor: 'middle', size: 12 }); return; }
+    var labelW = opts.labelW || 178, R = 56, iw = W - labelW - R;
+    items.forEach(function (it, i) {
+      var y = 8 + i * rowH;
+      txt(svg, 0, y + 15, it.label.length > 15 ? it.label.slice(0, 14) + '…' : it.label, { size: 11, fill: INK });
+      add(svg, 'rect', { x: labelW, y: y + 5, width: iw, height: 13, rx: 3, fill: '#efece5' });
+      var w = Math.max(2, (Math.max(0, Math.min(100, it.value)) / 100) * iw);
+      var c = it.color || rateColor(it.value);
+      add(svg, 'rect', { x: labelW, y: y + 5, width: w, height: 13, rx: 3, fill: c });
+      txt(svg, W - 4, y + 16, it.value + '%', { anchor: 'end', size: 11, weight: '600', fill: c });
+      add(svg, 'rect', {
+        x: 0, y: y, width: W, height: rowH - 2, fill: 'transparent', style: 'cursor:crosshair',
+        'data-tip': '<strong>' + esc(it.label) + '</strong><br>掌握度 <b>' + it.value + '%</b> · ' + rateLabel(it.value) + (it.sub ? '<br><span style="opacity:.75">' + esc(it.sub) + '</span>' : '')
+      });
+    });
+    bindTips(svg, f.tip);
+  }
+
+  // ---------- 熱力圖 ----------
+  function heat(host, opts) {
+    var cols = opts.cols || [], rows = opts.rows || [];
+    var labelW = opts.labelW || 92, cellW = opts.cellW || 54, cellH = 30, W = labelW + cols.length * cellW + 8, H = 30 + rows.length * cellH + 10;
+    var f = frame(host, W, H), svg = f.svg;
+    cols.forEach(function (c, j) {
+      var t = c.length > 7 ? c.slice(0, 6) + '…' : c;
+      var n = txt(svg, labelW + j * cellW + cellW / 2, 16, t, { anchor: 'middle', size: 9, fill: MUTED });
+      n.setAttribute('transform', 'rotate(-32 ' + (labelW + j * cellW + cellW / 2) + ' 16)');
+    });
+    rows.forEach(function (r, i) {
+      txt(svg, 0, 46 + i * cellH, r.label, { size: 11, fill: INK, weight: '500' });
+      r.cells.forEach(function (v, j) {
+        var x = labelW + j * cellW + 2, y = 32 + i * cellH + 2;
+        add(svg, 'rect', {
+          x: x, y: y, width: cellW - 4, height: cellH - 6, rx: 3,
+          fill: v == null ? '#f0eee8' : rateColor(v),
+          stroke: v == null ? '#e6e2da' : 'none', 'stroke-width': 1
+        });
+        if (v != null) txt(svg, x + (cellW - 4) / 2, y + 16, String(v), { anchor: 'middle', size: 10, weight: '700', fill: Math.abs(v - 50) < 18 ? '#3a3026' : '#ffffff' });
+        add(svg, 'rect', {
+          x: x, y: y, width: cellW - 4, height: cellH - 6, fill: 'transparent', style: 'cursor:crosshair',
+          'data-tip': '<strong>' + esc(r.label) + '</strong> × <strong>' + esc(opts.fullCols ? opts.fullCols[j] : cols[j]) + '</strong><br>' + (v == null ? '欠數據' : '掌握度 <b>' + v + '%</b> · ' + rateLabel(v))
+        });
+      });
+    });
+    bindTips(svg, f.tip);
+  }
+
+  // ---------- 環圈 ----------
+  function donut(host, opts) {
+    var W = 150, H = 150, f = frame(host, W, H), svg = f.svg;
+    var cx = 75, cy = 75, r = 56, sw = 13;
+    var v = Math.max(0, Math.min(100, opts.value || 0));
+    var c = opts.color || rateColor(v);
+    add(svg, 'circle', { cx: cx, cy: cy, r: r, fill: 'none', stroke: '#efece5', 'stroke-width': sw });
+    var circ = 2 * Math.PI * r;
+    add(svg, 'circle', {
+      cx: cx, cy: cy, r: r, fill: 'none', stroke: c, 'stroke-width': sw, 'stroke-linecap': 'round',
+      'stroke-dasharray': (circ * v / 100) + ' ' + circ,
+      transform: 'rotate(-90 ' + cx + ' ' + cy + ')'
+    });
+    txt(svg, cx, cy + 4, String(v), { anchor: 'middle', size: 30, weight: '700', fill: INK, family: 'Georgia, serif' });
+    txt(svg, cx, cy + 22, opts.unit || '%', { anchor: 'middle', size: 11 });
+    if (opts.label) txt(svg, cx, cy + 42, opts.label, { anchor: 'middle', size: 10 });
+  }
+
+  // ---------- 迷你線 ----------
+  function spark(values, color) {
+    var w = 92, h = 28;
+    var svg = el('svg', { viewBox: '0 0 ' + w + ' ' + h, width: w, height: h, style: 'display:block;overflow:visible' });
+    var vals = (values || []).filter(function (v) { return v != null; });
+    if (vals.length < 2) return '<span style="color:#9aa2a8">—</span>';
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals), span = Math.max(1, max - min);
+    var pts = vals.map(function (v, i) { return [(i / (vals.length - 1)) * (w - 4) + 2, h - 3 - ((v - min) / span) * (h - 8)]; });
+    add(svg, 'path', { d: 'M' + pts.map(function (p) { return p.join(','); }).join(' L'), fill: 'none', stroke: color || '#213b52', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' });
+    var last = pts[pts.length - 1];
+    add(svg, 'circle', { cx: last[0], cy: last[1], r: 2.8, fill: color || '#213b52' });
+    return svg.outerHTML;
+  }
+
+  global.DSECharts = {
+    line: line, radar: radar, bars: bars, heat: heat, donut: donut, spark: spark,
+    rateColor: rateColor, rateLabel: rateLabel
+  };
+})(window);
+
+</script>
+<script>
+/* ---- app.js ---- */
+/* ============================================================
+   app.js — 介面、路由與互動流程
+   ============================================================ */
+(function (global) {
+  'use strict';
+
+  var S = global.DSEStore, A = global.DSEAnalysis, C = global.DSECharts, D = global.DSEData;
+  var $ = function (sel, root) { return (root || document).querySelector(sel); };
+  var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+  function shortDate(d) { if (!d) return '—'; var p = String(d).split('-'); return p.length === 3 ? (+p[1]) + '/' + (+p[2]) : d; }
+  function fullDate(d) { if (!d) return '—'; var p = String(d).split('-'); return p.length === 3 ? p[0] + '年' + (+p[1]) + '月' + (+p[2]) + '日' : d; }
+  function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+  // ---------- 圖示 ----------
+  var P = {
+    grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M4 12h16"/>',
+    users: '<circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1"/><path d="M16 5.2a3 3 0 0 1 0 5.6M18 20v-1a5 5 0 0 0-2-4"/>',
+    book: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20"/>',
+    sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+    camera: '<path d="M3 8h3l1.5-2h9L18 8h3v11H3z"/><circle cx="12" cy="13" r="3.5"/>',
+    sparkle: '<path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7z"/><path d="M18 16l.7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7z"/>',
+    clipboard: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 10h6M9 14h6M9 18h4"/>',
+    wand: '<path d="M4 20L16 8M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1zM19 12l.7 1.3L21 14l-1.3.7L19 16l-.7-1.3L17 14l1.3-.7z"/><path d="M14 10l2 2"/>',
+    pen: '<path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M14 6l4 4"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>',
+    down: '<path d="M4 7l8 10 8-10" transform="rotate(180 12 12)"/><path d="M12 4v14"/>',
+    up: '<path d="M12 20V6M5 13l7-7 7 7"/>',
+    flat: '<path d="M4 14h16M4 9h6M15 9h5"/>',
+    repeat: '<path d="M4 9a7 7 0 0 1 12-4l3 3M20 15a7 7 0 0 1-12 4l-3-3"/><path d="M19 4v4h-4M5 20v-4h4"/>',
+    balance: '<path d="M12 4v16M5 8h14M5 8l-3 6h6zM19 8l-3 6h6z"/><path d="M8 20h8"/>',
+    star: '<path d="M12 3l2.7 5.7 6.3.8-4.6 4.3 1.2 6.2L12 17l-5.6 3 1.2-6.2L3 9.5l6.3-.8z"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/>',
+    chart: '<path d="M4 20V6M4 20h16M8 16l4-5 3 3 5-7"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'
+  };
+  function icon(name, size) {
+    return '<svg viewBox="0 0 24 24" width="' + (size || 16) + '" height="' + (size || 16) + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[name] || P.info) + '</svg>';
+  }
+  function paintIcons(root) {
+    $$('[data-icon]', root || document).forEach(function (n) {
+      if (!n.dataset.painted) { n.innerHTML = icon(n.dataset.icon, n.classList.contains('drop-ico') ? 38 : 16); n.dataset.painted = '1'; }
+    });
+  }
+
+  // ---------- 提示 / 對話框 ----------
+  function toast(msg, type) {
+    var t = document.createElement('div');
+    t.className = 'toast' + (type ? ' ' + type : '');
+    t.textContent = msg;
+    $('#toastWrap').appendChild(t);
+    setTimeout(function () { t.style.transition = 'opacity .3s,transform .3s'; t.style.opacity = '0'; t.style.transform = 'translateX(14px)'; setTimeout(function () { t.remove(); }, 320); }, 3800);
+  }
+  function openModal(cfg) {
+    $('#modalTitle').textContent = cfg.title || '';
+    $('#modalBody').innerHTML = cfg.body || '';
+    $('#modalFoot').innerHTML = cfg.footer || '<button class="btn btn-ghost" data-close>關閉</button>';
+    $('#modalBackdrop').hidden = false;
+    if (cfg.onMount) cfg.onMount($('#modalBody'), $('#modalFoot'));
+    paintIcons($('#modalBody'));
+  }
+  function closeModal() { $('#modalBackdrop').hidden = true; }
+  function confirmDialog(title, message, onYes, danger) {
+    openModal({
+      title: title,
+      body: '<p style="margin:0;color:var(--ink-soft);line-height:1.85">' + message + '</p>',
+      footer: '<button class="btn btn-ghost" data-close>取消</button><button class="btn ' + (danger ? 'btn-danger-ghost' : 'btn-primary') + '" id="confirmYes">確認</button>',
+      onMount: function () {
+        $('#confirmYes').onclick = function () { closeModal(); onYes(); };
+      }
+    });
+  }
+
+  // ---------- UI 狀態 ----------
+  var UI = {
+    view: 'dashboard',
+    studentId: null,
+    klassFilter: 'all',
+    topicFilter: 'all',
+    topicQuery: '',
+    recordFilter: { student: 'all', type: 'all', query: '' },
+    recordLimit: 30,
+    storageAlertDismissed: false,
+    upload: { images: [], mode: 'ai', result: null, busy: false, studentId: null, date: null, title: '', type: '測驗', editingId: null, savedBanner: '' }
+  };
+
+  // ---------- 路由 ----------
+  var CRUMB = {
+    dashboard: ['工作區 / 班級概覽', '班級概覽'],
+    upload: ['工作區 / 試卷分析', '試卷分析'],
+    records: ['工作區 / 分析紀錄', '分析紀錄'],
+    students: ['工作區 / 學生檔案', '學生檔案'],
+    student: ['工作區 / 學生檔案 / 個人檔案', '學生個人檔案'],
+    knowledge: ['教學資源 / 知識點庫', '知識點庫'],
+    settings: ['教學資源 / 設定與備份', '設定與備份']
+  };
+  function parseHash() {
+    var h = (location.hash || '#dashboard').replace(/^#/, '');
+    var parts = h.split('/');
+    return { view: parts[0] || 'dashboard', param: parts[1] || null };
+  }
+  function navigate(view, param) { location.hash = '#' + view + (param ? '/' + param : ''); }
+
+  function route() {
+    var r = parseHash();
+    if (!CRUMB[r.view]) r.view = 'dashboard';
+    UI.view = r.view;
+    UI.studentId = r.param;
+    // 只在「由其他頁進入上傳頁」時套用網址帶的學生，之後同頁切換學生不被覆寫
+    if (r.view === 'upload' && r.param && S.getStudent(r.param)) UI.upload.studentId = r.param;
+    $$('.view').forEach(function (v) { v.classList.remove('active'); });
+    var viewEl = $('#view-' + (r.view === 'student' ? 'student' : r.view));
+    if (viewEl) viewEl.classList.add('active');
+    $$('.nav-item').forEach(function (n) {
+      n.classList.toggle('active', n.dataset.nav === (r.view === 'student' ? 'students' : r.view));
+    });
+    $('#crumb').textContent = CRUMB[r.view][0];
+    $('#pageTitle').textContent = r.view === 'student' ? '學生個人檔案' : CRUMB[r.view][1];
+    renderTopbarActions(r.view, r.param);
+    $('#navRecordsBadge').textContent = S.submissions().length;
+    $('#sidebar').classList.remove('open');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+
+    if (r.view === 'dashboard') renderDashboard();
+    else if (r.view === 'upload') renderUpload();
+    else if (r.view === 'records') renderRecords();
+    else if (r.view === 'students') renderStudents();
+    else if (r.view === 'student') renderStudent(r.param);
+    else if (r.view === 'knowledge') renderKnowledge();
+    else if (r.view === 'settings') renderSettings();
+    paintIcons(document.getElementById('content'));
+    var w = S.warning();
+    if (w) { toast(w, 'warn'); S.save(); }
+    syncStorageAlert();
+  }
+
+  // 被嵌入在不允許寫入 localStorage 的預覽框架時，明確提醒使用者
+  function syncStorageAlert() {
+    var el = $('#storageAlert');
+    if (!el) return;
+    el.hidden = !S.isMemoryOnly() || UI.storageAlertDismissed;
+  }
+
+  function renderTopbarActions(view, param) {
+    var box = $('#topbarActions');
+    var map = {
+      dashboard: '<a class="btn btn-outline btn-sm" href="#records">查看全部分析紀錄</a><button class="btn btn-primary btn-sm" data-go="upload">＋ 加入新試卷</button>',
+      upload: '<a class="btn btn-outline btn-sm" href="#records">查看全部分析紀錄 →</a>',
+      records: '<button class="btn btn-primary btn-sm" data-go="upload">＋ 加入新試卷</button>',
+      students: '<button class="btn btn-primary btn-sm" id="topAddStudent">＋ 新增學生</button>',
+      student: '<a class="btn btn-outline btn-sm" href="#students">← 返回名冊</a><button class="btn btn-primary btn-sm" data-go="upload" data-param="' + esc(param || '') + '">＋ 為這位學生加入試卷</button>',
+      knowledge: '<button class="btn btn-outline btn-sm" id="topAddTopic">＋ 自訂知識點</button>',
+      settings: ''
+    };
+    box.innerHTML = map[view] || '';
+    $$('[data-go]', box).forEach(function (b) { b.onclick = function () { navigate(b.dataset.go, b.dataset.param || null); }; });
+    if ($('#topAddStudent')) $('#topAddStudent').onclick = showAddStudent;
+    if ($('#topAddTopic')) $('#topAddTopic').onclick = showAddTopic;
+  }
+
+  // ============================================================
+  // 儀表板
+  // ============================================================
+  function renderDashboard() {
+    var ov = S.classOverview();
+    $('#dashLede').innerHTML = ov.submissionCount
+      ? '已累積 <b>' + ov.submissionCount + '</b> 份作業分析。最近的紀錄：' + fullDate(ov.latestDate) + '。下圖由逐題得分即時運算，每次存入新試卷都會自動更新。'
+      : '由試卷照片到教學決策，一次看清全班與每位學生的知識點掌握情況。先上傳第一份試卷開始建立數據。';
+
+    var stats = [
+      { label: '學生人數', value: ov.studentCount, note: '位學生建立檔案' },
+      { label: '已分析作業', value: ov.submissionCount, note: '份試卷／家課' },
+      { label: '全班平均掌握度', value: ov.avgMastery, unit: '%', note: '取最近兩次作業' },
+      { label: '需要跟進', value: ov.atRisk, note: '近兩次得分率低於 55%', alert: true }
+    ];
+    $('#dashStats').innerHTML = stats.map(function (s) {
+      return '<div class="stat' + (s.alert && s.value > 0 ? ' alert' : '') + '"><div class="stat-label">' + s.label + '</div><div class="stat-value">' + s.value + (s.unit ? '<small>' + s.unit + '</small>' : '') + '</div><div class="stat-note">' + s.note + '</div></div>';
+    }).join('');
+
+    // 全班走勢
+    var byDate = {};
+    S.submissions().forEach(function (rec) {
+      var d = rec.date || '未註明';
+      if (!byDate[d]) byDate[d] = { all: { got: 0, max: 0 }, na: { got: 0, max: 0 }, ms: { got: 0, max: 0 }, dh: { got: 0, max: 0 }, n: 0 };
+      var b = byDate[d]; b.n++;
+      (rec.items || []).forEach(function (it) {
+        var t = S.topicById(it.knowledgeId);
+        var got = Number(it.points) || 0, max = Number(it.maxPoints) || 0;
+        b.all.got += got; b.all.max += max;
+        if (t && b[t.strand]) { b[t.strand].got += got; b[t.strand].max += max; }
+      });
+    });
+    var dates = Object.keys(byDate).sort();
+    var series = [
+      { name: '全班整體', color: '#213b52', values: dates.map(function (d) { return S.pct(byDate[d].all.got, byDate[d].all.max); }) }
+    ];
+    D.STRANDS.forEach(function (st) {
+      series.push({ name: st.name, color: st.color, dashed: true, values: dates.map(function (d) { var b = byDate[d][st.id]; return b.max ? S.pct(b.got, b.max) : null; }) });
+    });
+    if (dates.length) {
+      C.line($('#classTrend'), { labels: dates.map(shortDate), series: series, height: 240 });
+      $('#trendLegend').innerHTML = series.map(function (s) { return '<span><i style="background:' + s.color + (s.dashed ? ';opacity:.6' : '') + '"></i>' + esc(s.name) + '</span>'; }).join('');
+    } else {
+      $('#classTrend').innerHTML = emptyState('chart', '還沒有走勢數據', '上傳並完成第一份試卷分析後，這裏會畫出全班隨時間的得分率曲線。');
+      $('#trendLegend').innerHTML = '';
+    }
+
+    // 全班雷達
+    var stRates = D.STRANDS.map(function (st) {
+      var got = 0, max = 0;
+      S.submissions().forEach(function (rec) {
+        (rec.items || []).forEach(function (it) {
+          var t = S.topicById(it.knowledgeId);
+          if (t && t.strand === st.id) { got += Number(it.points) || 0; max += Number(it.maxPoints) || 0; }
+        });
+      });
+      return { label: st.short, value: S.pct(got, max) };
+    });
+    if (S.submissions().length) C.radar($('#classRadar'), { axes: stRates, height: 268, color: '#213b52' });
+    else $('#classRadar').innerHTML = emptyState('target', '尚無範疇數據', '');
+
+    // 熱力圖
+    if (ov.studentCount && ov.submissionCount) {
+      var hm = S.heatmap(10);
+      C.heat($('#classHeat'), {
+        cols: hm.topicIds.map(function (id) { var t = S.topicById(id); return t ? t.name.slice(0, 6) : id; }),
+        fullCols: hm.topicIds.map(function (id) { var t = S.topicById(id); return t ? t.name : id; }),
+        rows: hm.rows.map(function (r) { return { label: r.student.name, cells: r.cells }; }),
+        labelW: 86, cellW: 58
+      });
+    } else $('#classHeat').innerHTML = emptyState('grid', '尚無矩陣數據', '');
+
+    // 共同弱點
+    var weak = ov.weakTopics.slice(0, 5);
+    $('#classWeak').innerHTML = weak.length ? weak.map(function (w, i) {
+      var t = w.topic;
+      return '<div class="weak-row"><div class="weak-rank">' + String(i + 1).padStart(2, '0') + '</div><div class="weak-body"><div class="weak-name">' + esc(t ? t.name : w.topicId) + '</div><div class="weak-sub">' + w.students + ' 位學生低於 60% · 平均 ' + w.avgRate + '%</div></div><div class="weak-val" style="color:' + C.rateColor(w.avgRate) + '">' + w.avgRate + '%</div></div>';
+    }).join('') : '<div class="empty" style="padding:26px 10px"><p style="margin:0">目前沒有明顯的共同弱點，或數據仍不足。</p></div>';
+
+    // 學生名冊
+    var rows = S.students().map(function (s) {
+      var tl = S.timeline(s.id);
+      var recent = tl.slice(-2);
+      var rate = S.pct(recent.reduce(function (a, x) { return a + x.got; }, 0), recent.reduce(function (a, x) { return a + x.max; }, 0));
+      var delta = tl.length >= 2 ? tl[tl.length - 1].pct - tl[tl.length - 2].pct : null;
+      var weakCount = S.topicMastery(s.id).filter(function (m) { return m.rate < 60; }).length;
+      var trendColor = delta == null ? '#7c8790' : delta > 0 ? '#2f7d68' : delta < 0 ? '#bd4a3e' : '#7c8790';
+      return '<tr><td><a class="row-link" href="#student/' + esc(s.id) + '">' + esc(s.name) + '</a></td><td>' + esc(s.klass || '—') + '</td><td class="num">' + (tl.length ? rate + '%' : '—') + '</td><td style="color:' + trendColor + ';font-weight:600">' + (delta == null ? '—' : (delta > 0 ? '+' : '') + delta + ' pt') + '</td><td>' + C.spark(tl.map(function (x) { return x.pct; }), trendColor) + '</td><td>' + (weakCount ? '<span class="tag critical">' + weakCount + ' 個弱點</span>' : '<span class="tag good">穩定</span>') + '</td><td>' + tl.length + ' 份</td></tr>';
+    }).join('');
+    $('#dashStudentTable').innerHTML = rows
+      ? '<table class="plain-table"><thead><tr><th>學生</th><th>班別</th><th>近兩次得分率</th><th>變化</th><th>走勢</th><th>狀態</th><th>作業</th></tr></thead><tbody>' + rows + '</tbody></table>'
+      : emptyState('users', '還沒有學生', '先到「學生檔案」新增學生，之後便可為他們上傳試卷。');
+  }
+
+  function emptyState(ic, title, desc) {
+    return '<div class="empty"><div class="empty-ico">' + icon(ic, 40) + '</div><h3>' + esc(title) + '</h3>' + (desc ? '<p>' + esc(desc) + '</p>' : '') + '</div>';
+  }
+
+  // ============================================================
+  // 試卷分析
+  // ============================================================
+  function renderUpload() {
+    var U = UI.upload;
+    var editing = U.editingId ? S.getSubmission(U.editingId) : null;
+    if (editing && !U.studentId) U.studentId = editing.studentId;
+
+    $('#uploadStepper').innerHTML = [
+      ['1', '上傳與設定'], ['2', '產生分析'], ['3', '核對並存檔']
+    ].map(function (s, i) {
+      var active = U.result ? i === 2 : i === 0;
+      var done = U.result && i < 2;
+      return '<div class="step-tab ' + (active ? 'active' : '') + (done ? ' done' : '') + '"><span class="step-num">' + (done ? '✓' : s[0]) + '</span><span>' + (editing && i === 2 ? '修改並儲存' : s[1]) + '</span></div>';
+    }).join('');
+    $('#step-1').hidden = !!U.result;
+    $('#step-2').hidden = !U.result;
+
+    var stus = S.students();
+    var sel = $('#upStudent');
+    sel.innerHTML = '<option value="">— 選擇學生 —</option>' + stus.map(function (s) {
+      return '<option value="' + esc(s.id) + '">' + esc(s.name) + '（' + esc(s.klass || '—') + ' ' + esc(s.sid || '') + '）· ' + S.submissions(s.id).length + ' 份</option>';
+    }).join('');
+    if (U.studentId) sel.value = U.studentId;
+    $('#upDate').value = U.date || today();
+    $('#upTitle').value = U.title || '';
+    $('#upType').value = U.type || '測驗';
+
+    renderUploadContext(editing);
+    updateModeUI();
+    renderThumbs();
+    renderRecentUploads();
+    if (U.result) renderResult();
+    else if (U.savedBanner) $('#analysisStatus').hidden = true;
+    else if (U.mode === 'ai' && !(S.settings().apiKey || '').trim() && $('#analysisStatus').hidden) {
+      setStatus('AI 視覺分析需要先到「設定」填入 API 金鑰；未設定時可直接選用「貼上分析結果」或「示範分析」，兩者一樣能走完整個存檔流程。', false);
+    }
+  }
+
+  function renderUploadContext(editing) {
+    var U = UI.upload, box = $('#uploadContext');
+    var stu = S.getStudent(U.studentId);
+    var count = stu ? S.submissions(stu.id).length : 0;
+    var body;
+    if (editing) {
+      body = '<span class="ctx-tag">編輯既有紀錄</span><span>正在修改 <b>' + esc(editing.title) + '</b>（' + fullDate(editing.date) + '）。儲存後能力曲線、掌握度與建議會即時重算。</span><a class="text-link" href="#records">返回分析紀錄</a>';
+    } else if (stu) {
+      body = '<span class="ctx-tag">目前學生</span><span>正在為 <b>' + esc(stu.name) + '</b>（' + esc(stu.klass || '—') + '）加入第 <b>' + (count + 1) + '</b> 份作業，目前已累積 <b>' + count + '</b> 份。</span><button class="ctx-clear" data-clearstudent type="button">切換學生</button>';
+    } else {
+      body = '<span class="ctx-tag">連續新增</span><span>每存檔一份即可接著加入下一份；所有結果會累積到學生檔案與分析紀錄。</span><a class="text-link" href="#students">由學生檔案開始</a>';
+    }
+    box.innerHTML = '<div class="ctx-main">' + body + '</div>' +
+      (U.savedBanner && !U.result ? '<div class="ctx-saved">✓ ' + esc(U.savedBanner) + '</div>' : '');
+    box.hidden = false;
+  }
+
+  function renderRecentUploads() {
+    var recs = S.submissions().slice(0, 4);
+    var sourceName = { ai: 'AI 分析', demo: '示範', manual: '手動', paste: '貼上結果' };
+    $('#upRecent').innerHTML =
+      '<div class="panel-head"><div><div class="eyebrow">最近存入</div><h2>最近的作業分析</h2></div><a class="text-link" href="#records">查看全部 ' + S.submissions().length + ' 份 →</a></div>' +
+      (recs.length
+        ? '<table class="plain-table"><thead><tr><th>學生</th><th>作業</th><th>日期</th><th>得分率</th><th>題數</th><th>來源</th></tr></thead><tbody>' +
+          recs.map(function (rec) {
+            var s = S.getStudent(rec.studentId);
+            var sc = S.scoreOf(rec), p = S.pct(sc.got, sc.max);
+            return '<tr><td><a class="row-link" href="#student/' + esc(rec.studentId) + '">' + esc(s ? s.name : '—') + '</a></td>' +
+              '<td>' + esc(rec.title) + '</td><td>' + shortDate(rec.date) + '</td>' +
+              '<td class="num" style="color:' + C.rateColor(p) + '">' + p + '%</td>' +
+              '<td>' + (rec.items || []).length + '</td>' +
+              '<td><span class="tag' + (rec.source === 'demo' ? ' demo' : '') + '">' + esc(sourceName[rec.source] || rec.source || '—') + '</span></td></tr>';
+          }).join('') + '</tbody></table>'
+        : emptyState('clipboard', '還沒有存入任何作業', '完成一次分析並確認存檔後，這裏會列出最近的紀錄。'));
+  }
+
+  function updateModeUI() {
+    var mode = UI.upload.mode;
+    var modeIds = { ai: 'btnModeAI', paste: 'btnModePaste', demo: 'btnModeDemo', manual: 'btnModeManual' };
+    $$('.mode-card').forEach(function (b) { b.classList.toggle('selected', b.id === modeIds[mode]); });
+    $('#pasteBox').hidden = mode !== 'paste';
+    var st = S.settings();
+    var tag = $('#aiModeTag');
+    var ready = !!(st.apiKey || '').trim();
+    tag.textContent = ready ? '已設定' : '需設定 API';
+    tag.className = 'mode-tag' + (ready ? ' ready' : '');
+    $('#btnRunAnalysis').innerHTML = ({
+      ai: '以 AI 分析照片 <span aria-hidden="true">→</span>',
+      paste: '讀取貼上的結果 <span aria-hidden="true">→</span>',
+      demo: '載入示範分析 <span aria-hidden="true">→</span>',
+      manual: '開始逐題登錄 <span aria-hidden="true">→</span>'
+    })[mode];
+  }
+
+  function renderThumbs() {
+    $('#thumbs').innerHTML = UI.upload.images.map(function (im, i) {
+      return '<div class="thumb"><img src="' + im.dataUrl + '" alt="試卷照片 ' + (i + 1) + '"><button class="thumb-del" data-del="' + i + '" type="button" aria-label="移除">×</button><div class="thumb-name">' + esc(im.name) + '</div></div>';
+    }).join('');
+    $$('[data-del]', $('#thumbs')).forEach(function (b) {
+      b.onclick = function () { UI.upload.images.splice(+b.dataset.del, 1); renderThumbs(); };
+    });
+  }
+
+  function setStatus(msg, isError, spinning) {
+    var box = $('#analysisStatus');
+    box.hidden = false;
+    box.className = 'analysis-status' + (isError ? ' error' : '');
+    box.innerHTML = (spinning ? '<span class="spin"></span>' : '') + esc(msg);
+  }
+
+  function runAnalysis() {
+    var U = UI.upload, mode = U.mode;
+    var stus = S.students();
+    if (!stus.length) { toast('請先到「學生檔案」新增一位學生。', 'error'); return; }
+    U.studentId = $('#upStudent').value;
+    if (!U.studentId) { toast('請選擇所屬學生。', 'error'); $('#upStudent').focus(); return; }
+    U.date = $('#upDate').value || today();
+    U.title = $('#upTitle').value.trim();
+    U.type = $('#upType').value;
+    if (U.busy) return;
+    U.savedBanner = '';
+    $('#analysisStatus').hidden = true;
+
+    if (mode === 'manual') {
+      var r = A.emptyResult();
+      r.items.push({ qno: '1', knowledgeId: '', correct: true, points: 10, maxPoints: 10, note: '' });
+      finishAnalysis(r); return;
+    }
+    if (mode === 'demo') { finishAnalysis(A.analyzeDemo(U.images, U.studentId + U.date)); return; }
+    if (mode === 'paste') {
+      try { finishAnalysis(A.parsePasted($('#pasteJSON').value, S.topics())); }
+      catch (e) { setStatus(e.message, true); }
+      return;
+    }
+    // AI
+    if (!U.images.length) { setStatus('請先上傳至少一張試卷照片。', true); return; }
+    U.busy = true;
+    $('#btnRunAnalysis').disabled = true;
+    setStatus('已送出 ' + U.images.length + ' 張照片，模型正在逐題辨識知識點與批改結果…', false, true);
+    A.analyzeWithAI(U.images, S.settings(), S.topics(), '學生：' + (S.getStudent(U.studentId) || {}).name + '；作業：' + (U.title || U.type))
+      .then(function (r) {
+        U.busy = false; $('#btnRunAnalysis').disabled = false;
+        $('#analysisStatus').hidden = true;
+        finishAnalysis(r);
+        toast('AI 分析完成，請逐題核對後存檔。');
+      })
+      .catch(function (e) {
+        U.busy = false; $('#btnRunAnalysis').disabled = false;
+        setStatus(e.message || '分析失敗，請重試。', true);
+      });
+  }
+
+  function finishAnalysis(result) {
+    UI.upload.result = result;
+    A.recompute(result);
+    renderUpload();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function topicOptions(selected) {
+    var groups = D.STRANDS.map(function (st) {
+      var opts = S.topics().filter(function (t) { return t.strand === st.id; }).map(function (t) {
+        return '<option value="' + esc(t.id) + '"' + (t.id === selected ? ' selected' : '') + '>' + esc(t.id) + ' ' + esc(t.name) + '</option>';
+      }).join('');
+      return '<optgroup label="' + esc(st.name) + '">' + opts + '</optgroup>';
+    }).join('');
+    return '<option value=""' + (!selected ? ' selected' : '') + '>— 請選擇 —</option>' + groups + '<option value="UNKNOWN"' + (selected === 'UNKNOWN' ? ' selected' : '') + '>⚠ 未能對應（待修正）</option>';
+  }
+
+  function renderResult() {
+    var U = UI.upload, r = U.result;
+    var stu = S.getStudent(U.studentId) || {};
+    var banner = $('#resultBanner');
+    if (U.editingId) {
+      banner.className = 'result-banner';
+      banner.innerHTML = '<strong>正在修改已存檔的分析結果。</strong>更改知識點、對錯或分數後按「儲存修改」，能力曲線、知識點掌握度與針對性建議會立即重新計算，不會產生第二份紀錄。';
+    } else if (r.source === 'demo') {
+      banner.className = 'result-banner demo';
+      banner.innerHTML = '<strong>這是示範數據，不是由照片辨識出來的結果。</strong>系統按知識點庫產生了一組完整的逐題紀錄，讓你試用整個流程。請直接修改下方內容，或捨棄後改用「AI 視覺分析」／「貼上分析結果」／「手動登錄」。';
+    } else if (r.source === 'ai') {
+      banner.className = 'result-banner';
+      banner.innerHTML = '<strong>模型已完成初步辨識。</strong>影像辨識可能受拍攝角度、字跡與批改符號影響，請務必逐題核對知識點、對錯與得分，確認無誤後才存入學生檔案。';
+    } else if (r.source === 'manual') {
+      banner.className = 'result-banner';
+      banner.innerHTML = '<strong>手動登錄模式。</strong>逐題選擇知識點並輸入得分，系統會據此計算掌握度、更新能力曲線並產生建議。';
+    } else {
+      banner.className = 'result-banner';
+      banner.innerHTML = '<strong>已讀取貼上的分析結果。</strong>請確認知識點代碼與分數無誤。';
+    }
+    if (r.summary) banner.innerHTML += '<br><span style="opacity:.8">' + esc(r.summary) + '</span>';
+
+    $('#resultMeta').innerHTML = [
+      '<span>學生 <b>' + esc(stu.name || '—') + '</b></span>',
+      '<span>日期 <b>' + fullDate(U.date) + '</b></span>',
+      '<span>類型 <b>' + esc(U.type) + '</b></span>',
+      '<span>題數 <b>' + r.items.length + '</b></span>',
+      '<span>來源 <b>' + (U.editingId ? '編輯既有紀錄' : ({ ai: 'AI 視覺分析', demo: '示範數據', manual: '手動登錄', paste: '貼上結果' }[r.source] || r.source)) + '</b></span>'
+    ].join('');
+
+    $('#btnSaveAndNext').hidden = !!U.editingId;
+    $('#btnDiscardResult').textContent = U.editingId ? '取消編輯' : '捨棄';
+    $('#btnSaveResult').innerHTML = (U.editingId ? '儲存修改' : '確認並存入學生檔案') + ' <span aria-hidden="true">→</span>';
+
+    var tbody = $('#itemTable tbody');
+    tbody.innerHTML = r.items.map(function (it, i) {
+      return '<tr data-i="' + i + '">' +
+        '<td><input class="qno" data-f="qno" value="' + esc(it.qno) + '" aria-label="題號"></td>' +
+        '<td><select data-f="knowledgeId">' + topicOptions(it.knowledgeId) + '</select></td>' +
+        '<td><select class="correct-pick ' + (it.correct ? 'ok' : 'no') + '" data-f="correct"><option value="1"' + (it.correct ? ' selected' : '') + '>✓ 答對</option><option value="0"' + (!it.correct ? ' selected' : '') + '>✕ 答錯</option></select></td>' +
+        '<td><input type="number" min="0" data-f="points" value="' + (Number(it.points) || 0) + '" aria-label="得分"></td>' +
+        '<td><input type="number" min="1" data-f="maxPoints" value="' + (Number(it.maxPoints) || 10) + '" aria-label="滿分"></td>' +
+        '<td><input data-f="note" value="' + esc(it.note) + '" placeholder="錯因／備註（選填）"></td>' +
+        '<td><button class="item-del" data-remove="' + i + '" type="button" aria-label="刪除此題">×</button></td>' +
+        '</tr>';
+    }).join('');
+    updateResultSummary();
+  }
+
+  function updateResultSummary() {
+    var r = UI.upload.result;
+    if (!r) return;
+    var s = A.recompute(r);
+    var p = S.pct(s.got, s.max);
+    $('#resultSummary').innerHTML = '合計 <strong>' + s.got + '</strong> / ' + s.max + ' 分　·　得分率 <strong>' + p + '%</strong>　·　' + r.items.length + ' 題';
+  }
+
+  function saveResult(continueNext) {
+    var U = UI.upload, r = U.result;
+    if (!r || !r.items.length) { toast('至少需要一題才能存檔。', 'error'); return; }
+    var studentId = U.studentId || $('#upStudent').value;
+    if (!studentId || !S.getStudent(studentId)) { toast('請選擇所屬學生。', 'error'); return; }
+    var date = U.date || $('#upDate').value || today();
+    var title = U.title || $('#upTitle').value.trim() || r.title || '未命名作業';
+    var type = U.type || $('#upType').value || '測驗';
+    var unknown = r.items.filter(function (it) { return !it.knowledgeId || it.knowledgeId === 'UNKNOWN'; });
+    var imageList = U.images.map(function (im) { return im.dataUrl; });
+    // 編輯既有紀錄且未更動照片時，保留原本的試卷影像
+    if (U.editingId && !imageList.length) {
+      var old = S.getSubmission(U.editingId);
+      if (old) imageList = [old.imageData].concat(old.extraImages || []).filter(Boolean);
+    }
+
+    var doSave = function () {
+      var s = A.recompute(r);
+      var payload = {
+        studentId: studentId, title: title, date: date, type: type,
+        imageData: imageList[0] || null,
+        extraImages: imageList.slice(1),
+        imageName: U.images.length ? U.images[0].name : ((S.getSubmission(U.editingId) || {}).imageName || ''),
+        score: s.got, totalScore: s.max,
+        items: r.items.map(function (it) { return { qno: it.qno, knowledgeId: it.knowledgeId, correct: !!it.correct, points: Number(it.points) || 0, maxPoints: Number(it.maxPoints) || 10, note: it.note || '' }; }),
+        source: r.source || 'manual', summary: r.summary || ''
+      };
+      var wasEditing = !!U.editingId;
+      if (wasEditing) S.updateSubmission(U.editingId, payload); else S.addSubmission(payload);
+      var name = (S.getStudent(studentId) || {}).name || '學生';
+      var total = S.submissions(studentId).length;
+      var verb = wasEditing ? '已更新' : '已存入';
+      $('#navRecordsBadge').textContent = S.submissions().length;
+
+      if (continueNext && !wasEditing) {
+        U.images = []; U.result = null; U.busy = false; U.editingId = null;
+        U.title = ''; U.date = today(); U.type = '測驗';
+        U.savedBanner = verb + '「' + title + '」到 ' + name + ' 的檔案（累計 ' + total + ' 份）。可接著加入下一份試卷。';
+        $('#upTitle').value = ''; $('#pasteJSON').value = ''; $('#analysisStatus').hidden = true;
+        renderUpload();
+        toast('已存檔，可繼續加入下一份。');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        UI.upload = { images: [], mode: U.mode, result: null, busy: false, studentId: studentId, date: null, title: '', type: '測驗', editingId: null, savedBanner: '' };
+        $('#upTitle').value = ''; $('#pasteJSON').value = ''; $('#analysisStatus').hidden = true;
+        toast(verb + ' ' + name + ' 的學習檔案。');
+        if (wasEditing) navigate('records'); else navigate('student', studentId);
+      }
+    };
+    if (unknown.length) {
+      confirmDialog('有 ' + unknown.length + ' 題尚未對應知識點', '這些題目會計入總分，但不會出現在知識點掌握度與雷達圖中。建議先選好知識點再存檔。確定仍要存入嗎？', doSave);
+    } else doSave();
+  }
+
+  // 把已存檔的紀錄載入結果編輯器，修改後圖表與建議會自動重算
+  function editSubmission(id) {
+    var rec = S.getSubmission(id);
+    if (!rec) { toast('找不到這份紀錄。', 'error'); return; }
+    var imgs = [rec.imageData].concat(rec.extraImages || []).filter(Boolean);
+    UI.upload = {
+      images: imgs.map(function (d, i) { return { dataUrl: d, name: rec.imageName || ('試卷照片 ' + (i + 1)) }; }),
+      mode: 'manual', result: null, busy: false,
+      studentId: rec.studentId, date: rec.date, title: rec.title, type: rec.type || '測驗',
+      editingId: id, savedBanner: ''
+    };
+    var r = {
+      title: rec.title, totalScore: rec.totalScore,
+      items: (rec.items || []).map(function (it) {
+        return { qno: it.qno, knowledgeId: it.knowledgeId, correct: !!it.correct, points: Number(it.points) || 0, maxPoints: Number(it.maxPoints) || 10, note: it.note || '' };
+      }),
+      summary: rec.summary || '', source: rec.source || 'manual'
+    };
+    A.recompute(r);
+    UI.upload.result = r;
+    if (location.hash.indexOf('#upload') !== 0) location.hash = '#upload';
+    else renderUpload();
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  // ============================================================
+  // 分析紀錄：所有已存結果的累積清單、篩選、查看與回改
+  // ============================================================
+  var SOURCE_NAME = { ai: 'AI 分析', demo: '示範', manual: '手動登錄', paste: '貼上結果' };
+
+  function openLightbox(imgs, start) {
+    var list = (imgs || []).filter(Boolean);
+    if (!list.length) return;
+    var idx = start || 0;
+    var show = function () { $('#lightboxImg').src = list[idx]; $('#lightbox').hidden = false; };
+    show();
+    $('#lightbox').onclick = function (e) {
+      if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-close')) { $('#lightbox').hidden = true; return; }
+      if (list.length > 1) { idx = (idx + 1) % list.length; show(); toast('第 ' + (idx + 1) + ' / ' + list.length + ' 張'); }
+    };
+  }
+
+  function recordsImages(rec) { return [rec.imageData].concat(rec.extraImages || []).filter(Boolean); }
+
+  function filteredRecords() {
+    var f = UI.recordFilter;
+    var q = f.query.trim().toLowerCase();
+    return S.submissions().filter(function (rec) {
+      if (f.student !== 'all' && rec.studentId !== f.student) return false;
+      if (f.type !== 'all' && (rec.type || '') !== f.type) return false;
+      if (!q) return true;
+      var stu = S.getStudent(rec.studentId);
+      var hay = [rec.title, rec.date, rec.type, stu ? stu.name : '', rec.summary || ''].join(' ').toLowerCase();
+      (rec.items || []).forEach(function (it) {
+        var t = S.topicById(it.knowledgeId);
+        hay += ' ' + (t ? t.name + ' ' + (t.k || []).join(' ') : it.knowledgeId) + ' ' + (it.note || '');
+      });
+      return hay.indexOf(q) >= 0;
+    });
+  }
+
+  function renderRecords() {
+    var all = S.submissions();
+    $('#navRecordsBadge').textContent = all.length;
+    var got = 0, max = 0, withImg = 0, recent = 0;
+    var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+    var cutoffStr = cutoff.toISOString().slice(0, 10);
+    all.forEach(function (rec) {
+      var sc = S.scoreOf(rec); got += sc.got; max += sc.max;
+      if (recordsImages(rec).length) withImg++;
+      if ((rec.date || '') >= cutoffStr) recent++;
+    });
+    $('#recLede').innerHTML = '共 <b>' + all.length + '</b> 份分析結果，分屬 <b>' + S.students().length + '</b> 位學生。每份都可查看逐題內容、修正知識點與分數，修改後所有圖表與建議會即時重算。';
+    var stats = [
+      { label: '累積分析結果', value: all.length, note: '份試卷／家課' },
+      { label: '近 30 天新增', value: recent, note: '份新紀錄' },
+      { label: '整體平均得分率', value: S.pct(got, max), unit: '%', note: '依逐題得分計算' },
+      { label: '附有試卷影像', value: withImg, note: '份可回看原卷' }
+    ];
+    $('#recStats').innerHTML = stats.map(function (s) {
+      return '<div class="stat"><div class="stat-label">' + s.label + '</div><div class="stat-value">' + s.value + (s.unit ? '<small>' + s.unit + '</small>' : '') + '</div><div class="stat-note">' + s.note + '</div></div>';
+    }).join('');
+    renderRecordFilter();
+    renderRecordList();
+  }
+
+  function renderRecordFilter() {
+    var f = UI.recordFilter;
+    var stus = S.students();
+    var types = ['all', '測驗', '家課', '考試', '課堂練習'];
+    $('#recordFilter').innerHTML =
+      '<select class="rec-select" id="recStudent"><option value="all">全部學生</option>' +
+        stus.map(function (s) {
+          return '<option value="' + esc(s.id) + '"' + (f.student === s.id ? ' selected' : '') + '>' + esc(s.name) + '（' + S.submissions(s.id).length + ' 份）</option>';
+        }).join('') + '</select>' +
+      types.map(function (t) {
+        return '<button class="chip' + (f.type === t ? ' active' : '') + '" data-rtype="' + esc(t) + '">' + (t === 'all' ? '全部類型' : esc(t)) + '</button>';
+      }).join('') +
+      '<input id="recSearch" class="rec-search" type="search" placeholder="搜尋作業名稱／學生／知識點" value="' + esc(f.query) + '">';
+  }
+
+  function renderRecordList() {
+    var list = filteredRecords();
+    var shown = list.slice(0, UI.recordLimit);
+    $('#recCount').textContent = '顯示 ' + shown.length + ' / ' + list.length + ' 份';
+    var rows = shown.map(function (rec) {
+      var stu = S.getStudent(rec.studentId);
+      var sc = S.scoreOf(rec), p = S.pct(sc.got, sc.max);
+      var hasImg = recordsImages(rec).length > 0;
+      return '<tr>' +
+        '<td class="rec-date">' + esc(rec.date || '—') + '</td>' +
+        '<td><a class="row-link" href="#student/' + esc(rec.studentId) + '">' + esc(stu ? stu.name : '—') + '</a></td>' +
+        '<td class="rec-title">' + esc(rec.title || '未命名作業') + (rec.summary ? '<span class="rec-note">' + esc(rec.summary.slice(0, 42)) + '</span>' : '') + '</td>' +
+        '<td><span class="tag">' + esc(rec.type || '—') + '</span></td>' +
+        '<td class="num">' + (rec.items || []).length + '</td>' +
+        '<td class="num">' + sc.got + '<span class="rec-max"> / ' + sc.max + '</span></td>' +
+        '<td class="num" style="color:' + C.rateColor(p) + ';font-weight:700">' + p + '%</td>' +
+        '<td><span class="tag' + (rec.source === 'demo' ? ' demo' : '') + '">' + esc(SOURCE_NAME[rec.source] || rec.source || '—') + '</span></td>' +
+        '<td><div class="rec-actions">' +
+          '<button data-recact="view" data-recid="' + esc(rec.id) + '">查看</button>' +
+          '<button data-recact="edit" data-recid="' + esc(rec.id) + '">編輯</button>' +
+          (hasImg ? '<button data-recact="image" data-recid="' + esc(rec.id) + '">影像</button>' : '') +
+          '<button data-recact="delete" data-recid="' + esc(rec.id) + '" class="danger">刪除</button>' +
+        '</div></td></tr>';
+    }).join('');
+    $('#recordList').innerHTML = list.length
+      ? '<div class="item-table-wrap"><table class="plain-table record-table"><thead><tr>' +
+          '<th>日期</th><th>學生</th><th>作業名稱</th><th>類型</th><th>題數</th><th>得分</th><th>得分率</th><th>來源</th><th>操作</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        (list.length > shown.length ? '<button class="btn btn-dashed" id="recMore" type="button">顯示更多（尚有 ' + (list.length - shown.length) + ' 份）</button>' : '')
+      : emptyState('clipboard', '沒有符合條件的分析紀錄', '試試清除篩選條件，或按右上角「加入新試卷」建立第一份。');
+  }
+
+  function showRecordDetail(id) {
+    var rec = S.getSubmission(id);
+    if (!rec) { toast('找不到這份紀錄。', 'error'); return; }
+    var stu = S.getStudent(rec.studentId);
+    var sc = S.scoreOf(rec), p = S.pct(sc.got, sc.max);
+    var rows = (rec.items || []).map(function (it) {
+      var t = S.topicById(it.knowledgeId);
+      return '<tr><td class="num">' + esc(it.qno) + '</td>' +
+        '<td>' + (t ? '<span class="tag ' + t.strand + '">' + esc(t.name) + '</span>' : '<span class="tag critical">' + esc(it.knowledgeId || '未對應') + '</span>') + '</td>' +
+        '<td>' + (it.correct ? '<span class="tag good">答對</span>' : '<span class="tag critical">答錯</span>') + '</td>' +
+        '<td class="num">' + (Number(it.points) || 0) + ' / ' + (Number(it.maxPoints) || 10) + '</td>' +
+        '<td>' + esc(it.note || '—') + '</td></tr>';
+    }).join('');
+    var imgs = recordsImages(rec);
+    openModal({
+      title: rec.title || '分析結果',
+      body: '<div class="rec-detail-meta">' +
+          '<span>學生 <b>' + esc(stu ? stu.name : '—') + '</b></span><span>日期 <b>' + fullDate(rec.date) + '</b></span>' +
+          '<span>類型 <b>' + esc(rec.type || '—') + '</b></span><span>得分 <b>' + sc.got + ' / ' + sc.max + '（' + p + '%）</b></span>' +
+        '</div>' +
+        (rows ? '<table class="plain-table rec-detail-table"><thead><tr><th>題號</th><th>知識點</th><th>結果</th><th>得分</th><th>錯因／備註</th></tr></thead><tbody>' + rows + '</tbody></table>'
+              : '<p style="font-size:12px;color:var(--muted)">這份紀錄沒有逐題資料。</p>') +
+        (imgs.length ? '<div class="rec-thumbs-label">試卷影像（按圖放大）</div><div class="rec-thumbs">' +
+          imgs.map(function (d, i) { return '<img data-recimg="' + i + '" src="' + d + '" alt="試卷影像 ' + (i + 1) + '">'; }).join('') + '</div>' : ''),
+      footer: '<button class="btn btn-ghost" data-close>關閉</button><button class="btn btn-outline" id="recEditBtn">編輯這份結果</button><button class="btn btn-primary" data-close>完成</button>',
+      onMount: function () {
+        $('#recEditBtn').onclick = function () { closeModal(); editSubmission(id); };
+        $$('[data-recimg]', $('#modalBody')).forEach(function (im) {
+          im.onclick = function () { openLightbox(imgs, +im.dataset.recimg); };
+        });
+      }
+    });
+  }
+
+  // ============================================================
+  // 學生名冊
+  // ============================================================
+  function renderStudents() {
+    var stus = S.students();
+    var klasses = ['all'].concat(Array.from(new Set(stus.map(function (s) { return s.klass || '未分班'; }))));
+    $('#studentFilter').innerHTML = klasses.map(function (k) {
+      return '<button class="chip' + (UI.klassFilter === k ? ' active' : '') + '" data-klass="' + esc(k) + '">' + (k === 'all' ? '全部學生' : esc(k) + ' 班') + '</button>';
+    }).join('');
+    $$('[data-klass]', $('#studentFilter')).forEach(function (b) {
+      b.onclick = function () { UI.klassFilter = b.dataset.klass; renderStudents(); };
+    });
+    var list = stus.filter(function (s) { return UI.klassFilter === 'all' || (s.klass || '未分班') === UI.klassFilter; });
+    $('#stuLede').innerHTML = '共 <b>' + stus.length + '</b> 位學生、<b>' + S.submissions().length + '</b> 份作業紀錄。每位學生都有獨立的知識點掌握度、能力曲線與教學建議。';
+    if (!list.length) { $('#studentGrid').innerHTML = emptyState('users', '這裏還沒有學生', '按「新增學生」建立第一份檔案，之後便可開始上傳試卷。'); return; }
+    $('#studentGrid').innerHTML = list.map(function (s) {
+      var tl = S.timeline(s.id);
+      var recent = tl.slice(-2);
+      var rate = S.pct(recent.reduce(function (a, x) { return a + x.got; }, 0), recent.reduce(function (a, x) { return a + x.max; }, 0));
+      var delta = tl.length >= 2 ? tl[tl.length - 1].pct - tl[tl.length - 2].pct : null;
+      var weak = S.topicMastery(s.id).filter(function (m) { return m.rate < 60; });
+      var lv = !tl.length ? 'lv-watch' : rate < 55 ? 'lv-critical' : rate < 70 ? 'lv-watch' : '';
+      var trendColor = delta == null ? '#7c8790' : delta > 0 ? '#2f7d68' : delta < 0 ? '#bd4a3e' : '#7c8790';
+      return '<div class="student-card ' + lv + '">' +
+        '<div class="sc-top"><div class="avatar">' + esc(s.name.slice(-1)) + '</div><div><div class="sc-name">' + esc(s.name) + '</div><div class="sc-meta">' + esc(s.klass || '未分班') + ' · ' + esc(s.sid || '—') + '</div></div><div class="sc-score">' + (tl.length ? rate + '<small>%</small>' : '—') + '<small>近兩次得分率</small></div></div>' +
+        '<div class="sc-row"><span>已存作業</span><span>' + tl.length + ' 份</span></div>' +
+        '<div class="sc-row"><span>最近一次</span><span>' + (tl.length ? shortDate(tl[tl.length - 1].date) + ' · ' + tl[tl.length - 1].pct + '%' : '尚未上傳') + '</span></div>' +
+        '<div class="sc-row"><span>較上次</span><span style="color:' + trendColor + '">' + (delta == null ? '—' : (delta > 0 ? '↑ +' : delta < 0 ? '↓ ' : '→ ') + (delta === 0 ? '持平' : delta + ' pt')) + '</span></div>' +
+        '<div class="sc-row"><span>需補救知識點</span><span>' + (weak.length ? '<span class="tag critical">' + weak.length + ' 個</span>' : '<span class="tag good">無</span>') + '</span></div>' +
+        '<div class="sc-spark"><span class="sc-spark-label">能力走勢</span>' + (tl.length >= 2 ? C.spark(tl.map(function (x) { return x.pct; }), trendColor) : '<span style="font-size:10px;color:#9aa2a8">數據不足</span>') + '</div>' +
+        '<div class="sc-foot"><a class="sc-link" href="#student/' + esc(s.id) + '">打開學習檔案 →</a><span style="font-size:10px;color:var(--muted)">' + esc(s.sid || '') + '</span></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function showAddStudent() {
+    openModal({
+      title: '新增學生',
+      body: '<div class="field-row two"><label class="field"><span>姓名 <b>*</b></span><input id="mName" placeholder="例：陳雅晴"></label><label class="field"><span>班別</span><input id="mKlass" placeholder="例：2A"></label></div>' +
+        '<div class="field-row two"><label class="field"><span>學號／編號</span><input id="mSid" placeholder="例：2A-01"></label></div>' +
+        '<label class="field"><span>備註</span><textarea id="mNote" rows="2" placeholder="學習特質、需要留意的事項（選填）"></textarea></label>',
+      footer: '<button class="btn btn-ghost" data-close>取消</button><button class="btn btn-primary" id="mSave">建立檔案</button>',
+      onMount: function () {
+        $('#mSave').onclick = function () {
+          var s = S.addStudent({ name: $('#mName').value, klass: $('#mKlass').value, sid: $('#mSid').value, note: $('#mNote').value });
+          if (!s) { toast('請填寫學生姓名。', 'error'); return; }
+          closeModal(); toast('已建立 ' + s.name + ' 的學習檔案。');
+          if (UI.view === 'students') renderStudents(); else navigate('student', s.id);
+        };
+        setTimeout(function () { $('#mName').focus(); }, 60);
+      }
+    });
+  }
+
+  // ============================================================
+  // 學生個人檔案
+  // ============================================================
+  function renderStudent(id) {
+    var s = S.getStudent(id);
+    if (!s) { $('#studentProfile').innerHTML = emptyState('users', '找不到這位學生', '可能已被刪除，請返回名冊查看。'); return; }
+    var tl = S.timeline(id);
+    var recent = tl.slice(-2);
+    var rate = S.pct(recent.reduce(function (a, x) { return a + x.got; }, 0), recent.reduce(function (a, x) { return a + x.max; }, 0));
+    var mastery = S.topicMastery(id);
+    var weakCount = S.topicMastery(id).filter(function (m) { return m.rate < 60; }).length;
+    var strands = S.strandMastery(id);
+    var advice = A.generateAdvice(id);
+
+    $('#studentProfile').innerHTML =
+      '<div class="profile-hero">' +
+        '<div class="profile-avatar">' + esc(s.name.slice(-1)) + '</div>' +
+        '<div class="profile-id"><h2>' + esc(s.name) + '</h2><div class="p-meta">' + esc(s.klass || '未分班') + ' 班 · 學號 ' + esc(s.sid || '—') + ' · 建立於 ' + fullDate(s.createdAt) + '</div>' + (s.note ? '<div class="p-note">' + esc(s.note) + '</div>' : '') + '</div>' +
+        '<div class="profile-actions"><button class="btn btn-primary btn-sm" id="pAddPaper">＋ 加入新試卷</button><button class="btn btn-outline btn-sm" id="pEdit">編輯資料</button><button class="btn btn-danger-ghost btn-sm" id="pDelete">刪除</button></div>' +
+        '<div class="profile-stats">' +
+          '<div class="pstat"><div class="v">' + tl.length + '</div><div class="l">已存作業</div></div>' +
+          '<div class="pstat"><div class="v">' + (tl.length ? rate + '%' : '—') + '</div><div class="l">近兩次得分率</div></div>' +
+          '<div class="pstat"><div class="v" style="color:' + (weakCount ? 'var(--critical)' : 'var(--good)') + '">' + weakCount + '</div><div class="l">需補救知識點</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="profile-grid">' +
+        '<div>' +
+          '<div class="panel"><div class="panel-head"><div><div class="eyebrow">能力變化</div><h2>歷次作業得分率</h2></div><div class="legend" id="pTrendLegend"></div></div><div class="chart-box" id="pTrend"></div></div>' +
+          '<div class="panel"><div class="panel-head"><div><div class="eyebrow">知識點診斷</div><h2>知識點掌握度（由低至高）</h2></div><span class="panel-note">依累計得分率排序</span></div><div class="chart-box" id="pBars"></div></div>' +
+          '<div class="panel"><div class="panel-head"><div><div class="eyebrow">學習歷程</div><h2>往期作業紀錄</h2></div><span class="panel-note">' + tl.length + ' 份</span></div><div id="pHistory"></div></div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="panel"><div class="panel-head"><div><div class="eyebrow">範疇分布</div><h2>三大範疇掌握度</h2></div></div><div class="chart-box" id="pRadar"></div>' +
+            '<div id="pStrandLegend" style="display:flex;flex-direction:column;gap:7px;margin-top:12px"></div>' +
+          '</div>' +
+          '<div class="panel"><div class="panel-head"><div><div class="eyebrow">教學行動</div><h2>針對性建議</h2></div><span class="panel-note">依最近數據自動產生</span></div><div class="advice-list" id="pAdvice"></div></div>' +
+          '<div class="panel"><div class="panel-head"><div><div class="eyebrow">已熟練</div><h2>掌握良好的知識點</h2></div></div><div id="pStrong"></div></div>' +
+        '</div>' +
+      '</div>';
+
+    // 折線
+    if (tl.length) {
+      var series = [{ name: '整體', color: '#213b52', values: tl.map(function (x) { return x.pct; }) }];
+      D.STRANDS.forEach(function (st) {
+        series.push({ name: st.short, color: st.color, dashed: true, values: tl.map(function (x) { return x[st.id]; }) });
+      });
+      C.line($('#pTrend'), { labels: tl.map(function (x) { return shortDate(x.date); }), series: series, height: 250 });
+      $('#pTrendLegend').innerHTML = series.map(function (x) { return '<span><i style="background:' + x.color + (x.dashed ? ';opacity:.6' : '') + '"></i>' + x.name + '</span>'; }).join('');
+    } else $('#pTrend').innerHTML = emptyState('chart', '還沒有作業紀錄', '為這位學生上傳第一份試卷後，能力曲線就會出現。');
+
+    // 長條
+    var weak = mastery.filter(function (m) { return m.attempts >= 1; }).slice(0, 9);
+    if (weak.length) C.bars($('#pBars'), {
+      items: weak.map(function (m) { var t = S.topicById(m.topicId); return { label: t ? t.name : m.topicId, value: m.rate, sub: m.attempts + ' 次作答 · ' + m.correct + ' 題答對' }; }),
+      rowH: 31, labelW: 190
+    });
+    else $('#pBars').innerHTML = emptyState('target', '尚無知識點數據', '');
+
+    // 雷達
+    if (S.submissions(id).length) {
+      C.radar($('#pRadar'), { axes: strands.map(function (x) { return { label: x.short, value: x.rate }; }), height: 270, color: '#213b52' });
+      $('#pStrandLegend').innerHTML = strands.map(function (x) {
+        return '<div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="width:8px;height:8px;border-radius:2px;background:' + x.color + '"></span><span style="flex:1;color:var(--ink-soft)">' + esc(x.name) + '</span><b style="font-family:Georgia,serif;font-size:14px;color:' + C.rateColor(x.rate) + '">' + x.rate + '%</b><span class="tag ' + (x.rate >= 65 ? 'good' : x.rate >= 45 ? 'watch' : 'critical') + '">' + C.rateLabel(x.rate) + '</span></div>';
+      }).join('');
+    } else { $('#pRadar').innerHTML = ''; $('#pStrandLegend').innerHTML = ''; }
+
+    // 建議
+    $('#pAdvice').innerHTML = advice.map(function (a) {
+      return '<div class="advice-card ' + a.level + '"><h4>' + icon(a.icon, 14) + ' ' + esc(a.title) + '</h4><p>' + esc(a.body) + '</p>' +
+        (a.actions.length ? '<ul>' + a.actions.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+        (a.topicIds.length ? '<div class="advice-topics">' + a.topicIds.map(function (tid) { var t = S.topicById(tid); return '<span class="tag">' + esc(t ? t.name : tid) + '</span>'; }).join('') + '</div>' : '') +
+        '</div>';
+    }).join('');
+
+    // 熟練知識點
+    var strong = mastery.filter(function (m) { return m.rate >= 80 && m.attempts >= 2; }).reverse();
+    $('#pStrong').innerHTML = strong.length
+      ? '<div style="display:flex;gap:6px;flex-wrap:wrap">' + strong.map(function (m) { var t = S.topicById(m.topicId); return '<span class="tag good">' + esc(t ? t.name : m.topicId) + ' ' + m.rate + '%</span>'; }).join('') + '</div>'
+      : '<p style="font-size:11.5px;color:var(--muted);margin:0;line-height:1.8">目前沒有達到 80% 且作答兩次以上的知識點。隨著作業累積，這裏會列出已鞏固的範圍。</p>';
+
+    // 歷程
+    var recs = S.submissions(id);
+    $('#pHistory').innerHTML = '<button class="btn btn-dashed history-add" id="pAddPaper2" type="button">＋ 為 ' + esc(s.name) + ' 再加入一份試卷</button>' +
+      (recs.length ? recs.map(function (rec) {
+      var sc = S.scoreOf(rec);
+      var tags = (rec.items || []).filter(function (it) { return it.correct === false && it.knowledgeId; }).slice(0, 5).map(function (it) {
+        var t = S.topicById(it.knowledgeId);
+        return '<span class="tag ' + (t ? t.strand : '') + '">' + esc(t ? t.name : it.knowledgeId) + '</span>';
+      }).join('');
+      return '<div class="history-item"><div class="hi-top"><div><div class="hi-title">' + esc(rec.title) + ' <span class="tag' + (rec.source === 'demo' ? ' demo' : '') + '">' + esc(rec.type) + (rec.source === 'demo' ? ' · 示範' : '') + '</span></div><div class="hi-date">' + fullDate(rec.date) + ' · ' + (rec.items || []).length + ' 題</div></div><div class="hi-score">' + sc.got + '<small> / ' + sc.max + '</small></div></div>' +
+        (tags ? '<div class="hi-tags"><span style="font-size:10px;color:var(--muted);margin-right:2px">錯題知識點</span>' + tags + '</div>' : '') +
+        '<div class="hi-actions">' + (rec.imageData ? '<button data-viewimg="' + esc(rec.id) + '">查看試卷影像</button>' : '') + '<button data-editsub="' + esc(rec.id) + '">編輯分析結果</button><button data-delsub="' + esc(rec.id) + '" class="danger">刪除這份紀錄</button></div></div>';
+    }).join('') : emptyState('clipboard', '還沒有作業紀錄', '按上方按鈕為這位學生加入第一份試卷。'));
+
+    $$('[data-viewimg]', $('#pHistory')).forEach(function (b) {
+      b.onclick = function () {
+        var rec = S.getSubmission(b.dataset.viewimg);
+        if (rec) openLightbox(recordsImages(rec));
+      };
+    });
+    $$('[data-delsub]', $('#pHistory')).forEach(function (b) {
+      b.onclick = function () {
+        confirmDialog('刪除作業紀錄', '刪除後，這份作業的分數與逐題資料會從能力曲線與知識點掌握度中移除，無法復原。確定刪除嗎？', function () {
+          S.removeSubmission(b.dataset.delsub); toast('已刪除該份作業紀錄。'); renderStudent(id);
+        }, true);
+      };
+    });
+
+    $('#pAddPaper').onclick = function () { navigate('upload', id); };
+    if ($('#pAddPaper2')) $('#pAddPaper2').onclick = function () { navigate('upload', id); };
+    $$('[data-editsub]', $('#pHistory')).forEach(function (b) {
+      b.onclick = function () { editSubmission(b.dataset.editsub); };
+    });
+
+    $('#pEdit').onclick = function () {
+      openModal({
+        title: '編輯學生資料',
+        body: '<div class="field-row two"><label class="field"><span>姓名 <b>*</b></span><input id="eName" value="' + esc(s.name) + '"></label><label class="field"><span>班別</span><input id="eKlass" value="' + esc(s.klass || '') + '"></label></div>' +
+          '<label class="field"><span>學號／編號</span><input id="eSid" value="' + esc(s.sid || '') + '"></label>' +
+          '<label class="field"><span>備註</span><textarea id="eNote" rows="3">' + esc(s.note || '') + '</textarea></label>',
+        footer: '<button class="btn btn-ghost" data-close>取消</button><button class="btn btn-primary" id="eSave">儲存</button>',
+        onMount: function () {
+          $('#eSave').onclick = function () {
+            if (!$('#eName').value.trim()) { toast('請填寫姓名。', 'error'); return; }
+            S.updateStudent(id, { name: $('#eName').value.trim(), klass: $('#eKlass').value.trim(), sid: $('#eSid').value.trim(), note: $('#eNote').value.trim() });
+            closeModal(); toast('資料已更新。'); renderStudent(id);
+          };
+        }
+      });
+    };
+    $('#pDelete').onclick = function () {
+      confirmDialog('刪除學生檔案', '將同時刪除 ' + esc(s.name) + ' 的所有作業紀錄（共 ' + recs.length + ' 份），且無法復原。確定刪除嗎？', function () {
+        S.removeStudent(id); toast('已刪除學生檔案。'); navigate('students');
+      }, true);
+    };
+  }
+
+  // ============================================================
+  // 知識點庫
+  // ============================================================
+  function renderKnowledge() {
+    var filters = [{ id: 'all', name: '全部' }].concat(D.STRANDS.map(function (s) { return { id: s.id, name: s.name }; }));
+    $('#topicFilter').innerHTML = filters.map(function (f) {
+      return '<button class="chip' + (UI.topicFilter === f.id ? ' active' : '') + '" data-tf="' + f.id + '">' + esc(f.name) + '</button>';
+    }).join('') + '<input id="topicSearch" class="chip" style="margin-left:auto;min-width:190px;border-radius:5px;background:#fff;font-size:11.5px;padding:5px 11px" placeholder="搜尋知識點／關鍵詞" value="' + esc(UI.topicQuery) + '">';
+    $$('[data-tf]', $('#topicFilter')).forEach(function (b) { b.onclick = function () { UI.topicFilter = b.dataset.tf; renderKnowledge(); }; });
+    $('#topicSearch').oninput = function () {
+      UI.topicQuery = this.value;
+      // 只重繪列表，避免輸入框失焦
+      renderTopicList();
+    };
+    renderTopicList();
+  }
+  function renderTopicList() {
+    var q = UI.topicQuery.trim().toLowerCase();
+    var groups = D.STRANDS.filter(function (s) { return UI.topicFilter === 'all' || UI.topicFilter === s.id; });
+    var html = groups.map(function (st) {
+      var items = S.topics().filter(function (t) {
+        if (t.strand !== st.id) return false;
+        if (!q) return true;
+        return (t.name + ' ' + t.id + ' ' + (t.k || []).join(' ') + ' ' + (t.r || '')).toLowerCase().indexOf(q) >= 0;
+      });
+      if (!items.length) return '';
+      return '<div class="topic-group"><div class="topic-group-head"><span class="swatch" style="background:' + st.color + '"></span><h3>' + esc(st.name) + '</h3><span style="font-size:10px;color:var(--muted)">' + esc(st.en) + '</span><span class="count">' + items.length + ' 個知識點</span></div>' +
+        items.map(function (t) {
+          return '<div class="topic-row"><div class="topic-code">' + esc(t.id) + '</div><div><div class="topic-name">' + esc(t.name) + '</div><div class="topic-kw">' + esc((t.k || []).slice(0, 5).join(' · ')) + '</div></div><div><span class="tag">' + esc(t.stage || '—') + '</span></div><div class="topic-remedy">' + esc(t.r || '—') + '</div></div>';
+        }).join('') + '</div>';
+    }).join('');
+    $('#topicList').innerHTML = html || emptyState('book', '找不到符合的知識點', '試試其他關鍵詞，或按「自訂知識點」新增校本項目。');
+  }
+  function showAddTopic() {
+    openModal({
+      title: '自訂知識點',
+      body: '<p style="font-size:11.5px;color:var(--muted);margin:0 0 14px;line-height:1.75">新增的知識點會立即出現在試卷分析的知識點選單，並計入掌握度統計。適合加入校本課程的專屬單元。</p>' +
+        '<label class="field"><span>名稱 <b>*</b></span><input id="tName" placeholder="例：矩陣入門"></label>' +
+        '<div class="field-row two"><label class="field"><span>所屬範疇</span><select id="tStrand">' + D.STRANDS.map(function (s) { return '<option value="' + s.id + '">' + esc(s.name) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="field"><span>年級</span><select id="tStage">' + D.STAGES.map(function (s) { return '<option>' + s + '</option>'; }).join('') + '</select></label></div>' +
+        '<label class="field"><span>關鍵詞（逗號分隔）</span><input id="tKw" placeholder="matrix, 矩陣"></label>' +
+        '<label class="field"><span>補救教學建議</span><textarea id="tR" rows="3" placeholder="當學生在此知識點低於 60% 時，建議怎麼做"></textarea></label>',
+      footer: '<button class="btn btn-ghost" data-close>取消</button><button class="btn btn-primary" id="tSave">新增</button>',
+      onMount: function () {
+        $('#tSave').onclick = function () {
+          var name = $('#tName').value.trim();
+          if (!name) { toast('請填寫知識點名稱。', 'error'); return; }
+          S.addCustomTopic({ name: name, strand: $('#tStrand').value, stage: $('#tStage').value, k: $('#tKw').value.split(/[,，]/).map(function (x) { return x.trim(); }).filter(Boolean), r: $('#tR').value.trim() || '建議由基礎例題重新建立概念，再安排階梯練習。', p: [] });
+          closeModal(); toast('已新增知識點「' + name + '」。'); if (UI.view === 'knowledge') renderKnowledge();
+        };
+      }
+    });
+  }
+
+  // ============================================================
+  // 設定
+  // ============================================================
+  function renderSettings() {
+    var st = S.settings();
+    $('#setEndpoint').value = st.apiEndpoint || '';
+    $('#setApiKey').value = st.apiKey || '';
+    $('#setModel').value = st.model || 'gpt-4o-mini';
+    $('#setTeacher').value = st.teacher || '';
+    $('#setSchool').value = st.school || '';
+    var bytes = 0;
+    try { bytes = (localStorage.getItem('dse_math_insight_v1') || '').length * 2; } catch (e) { }
+    $('#storageNote').innerHTML = '目前：' + S.students().length + ' 位學生 · ' + S.submissions().length + ' 份作業 · 約 ' + (bytes / 1024).toFixed(0) + ' KB。瀏覽器一般提供約 5 MB 本機空間；空間不足時系統會優先保留分數與逐題資料，自動釋出較舊的試卷影像。';
+    if (S.isMemoryOnly()) $('#storageNote').innerHTML += '<br><span style="color:var(--critical)">注意：目前無法寫入本機儲存，資料只保留在這個分頁。</span>';
+    if (st.teacher) $('#termLabel').textContent = (st.school ? st.school + ' · ' : '') + st.teacher + ' 老師';
+  }
+  function download(text, filename) {
+    var blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 500);
+  }
+
+  // ============================================================
+  // 事件綁定
+  // ============================================================
+  function bindGlobal() {
+    window.addEventListener('hashchange', route);
+    $('#menuToggle').onclick = function () { $('#sidebar').classList.toggle('open'); };
+    $('#modalClose').onclick = closeModal;
+    $('#modalBackdrop').addEventListener('click', function (e) {
+      if (e.target === this || e.target.hasAttribute('data-close')) closeModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeModal(); $('#lightbox').hidden = true; $('#sidebar').classList.remove('open'); }
+    });
+    $('#btnQuickBackup').onclick = function () { download(S.exportJSON(), '數理透視_備份_' + today() + '.json'); toast('備份檔已下載。'); };
+    $('#storageAlertClose').onclick = function () { UI.storageAlertDismissed = true; $('#storageAlert').hidden = true; };
+
+    // ---- 上傳 ----
+    var dz = $('#dropzone'), fi = $('#fileInput');
+    dz.onclick = function () { fi.click(); };
+    dz.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); } };
+    ['dragenter', 'dragover'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('drag'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('drag'); }); });
+    dz.addEventListener('drop', function (e) { handleFiles(e.dataTransfer.files); });
+    fi.onchange = function () { handleFiles(fi.files); fi.value = ''; };
+
+    var modes = { btnModeAI: 'ai', btnModePaste: 'paste', btnModeDemo: 'demo', btnModeManual: 'manual' };
+    Object.keys(modes).forEach(function (id) {
+      $('#' + id).onclick = function () {
+        UI.upload.mode = modes[id];
+        updateModeUI();
+        $('#analysisStatus').hidden = true;
+        if (modes[id] === 'ai' && !(S.settings().apiKey || '').trim()) {
+          setStatus('尚未設定 API 金鑰，AI 視覺分析暫不可用。可到「設定」填寫，或選用「貼上分析結果」／「示範分析」。', true);
+        }
+      };
+    });
+    $('#btnRunAnalysis').onclick = runAnalysis;
+    $('#btnParsePaste').onclick = function () { UI.upload.mode = 'paste'; runAnalysis(); };
+    $('#btnCopyPrompt').onclick = function () {
+      var text = A.buildPrompt(S.topics(), '請依照片逐題輸出');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { toast('提示詞已複製，貼到支援圖片的 AI 工具即可。'); })
+          .catch(function () { fallbackCopy(text); });
+      } else fallbackCopy(text);
+    };
+    $('#btnBackUpload').onclick = function () {
+      UI.upload.result = null; UI.upload.editingId = null; UI.upload.images = [];
+      renderUpload();
+    };
+    $('#btnDiscardResult').onclick = function () {
+      var wasEditing = !!UI.upload.editingId;
+      UI.upload.result = null; UI.upload.editingId = null; UI.upload.images = [];
+      if (wasEditing) { navigate('records'); toast('已取消編輯，原紀錄未改動。'); }
+      else { renderUpload(); toast('已捨棄這次分析結果。'); }
+    };
+    $('#btnSaveResult').onclick = function () { saveResult(false); };
+    $('#btnSaveAndNext').onclick = function () { saveResult(true); };
+    $('#btnAddItem').onclick = function () {
+      var r = UI.upload.result; if (!r) return;
+      r.items.push({ qno: String(r.items.length + 1), knowledgeId: '', correct: true, points: 10, maxPoints: 10, note: '' });
+      renderResult();
+    };
+    $('#itemTable tbody').addEventListener('input', onItemEdit);
+    $('#itemTable tbody').addEventListener('change', onItemEdit);
+    $('#itemTable tbody').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-remove]');
+      if (!b) return;
+      UI.upload.result.items.splice(+b.dataset.remove, 1);
+      renderResult();
+    });
+    $('#upStudent').onchange = function () { UI.upload.studentId = this.value; renderUploadContext(null); };
+    $('#upDate').onchange = function () { UI.upload.date = this.value; };
+    $('#upTitle').oninput = function () { UI.upload.title = this.value; };
+    $('#upType').onchange = function () { UI.upload.type = this.value; };
+    $('#uploadContext').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-clearstudent]');
+      if (!b) return;
+      UI.upload.studentId = null; UI.upload.result = null; UI.upload.editingId = null;
+      renderUpload();
+      $('#upStudent').focus();
+    });
+
+    // ---- 分析紀錄：篩選與列操作（事件委派，清單重繪不失效） ----
+    var rf = $('#recordFilter');
+    rf.addEventListener('change', function (e) {
+      if (e.target.id === 'recStudent') { UI.recordFilter.student = e.target.value; UI.recordLimit = 30; renderRecordList(); }
+    });
+    rf.addEventListener('input', function (e) {
+      if (e.target.id === 'recSearch') { UI.recordFilter.query = e.target.value; UI.recordLimit = 30; renderRecordList(); }
+    });
+    rf.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-rtype]');
+      if (!b) return;
+      UI.recordFilter.type = b.dataset.rtype; UI.recordLimit = 30;
+      renderRecordFilter(); renderRecordList();
+    });
+    $('#recordList').addEventListener('click', function (e) {
+      if (e.target.closest('#recMore')) { UI.recordLimit += 30; renderRecordList(); return; }
+      var b = e.target.closest('[data-recact]');
+      if (!b) return;
+      var id = b.dataset.recid, act = b.dataset.recact, rec = S.getSubmission(id);
+      if (!rec) return;
+      if (act === 'view') showRecordDetail(id);
+      else if (act === 'edit') editSubmission(id);
+      else if (act === 'image') openLightbox(recordsImages(rec));
+      else if (act === 'delete') {
+        var stu = S.getStudent(rec.studentId);
+        confirmDialog('刪除分析結果', '將刪除「' + esc(rec.title) + '」（' + esc(stu ? stu.name : '') + '，' + fullDate(rec.date) + '）及其逐題資料，能力曲線與掌握度會同步更新，無法復原。確定刪除嗎？', function () {
+          S.removeSubmission(id); toast('已刪除該份分析結果。'); renderRecords();
+        }, true);
+      }
+    });
+
+    // ---- 設定 ----
+    $('#btnSaveSettings').onclick = function () {
+      S.saveSettings({
+        apiEndpoint: $('#setEndpoint').value.trim(), apiKey: $('#setApiKey').value.trim(),
+        model: $('#setModel').value.trim() || 'gpt-4o-mini',
+        teacher: $('#setTeacher').value.trim(), school: $('#setSchool').value.trim()
+      });
+      toast('設定已儲存。'); renderSettings();
+    };
+    $('#btnExport').onclick = function () { download(S.exportJSON(), '數理透視_備份_' + today() + '.json'); toast('備份檔已下載。'); };
+    $('#importFile').onchange = function () {
+      var f = this.files[0]; if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () {
+        try { S.importJSON(fr.result); toast('資料已還原。'); route(); }
+        catch (e) { toast('還原失敗：' + e.message, 'error'); }
+      };
+      fr.readAsText(f); this.value = '';
+    };
+    $('#btnResetDemo').onclick = function () {
+      confirmDialog('還原示範資料', '這會覆蓋目前所有學生與作業紀錄，重新載入 5 位示範學生與 25 份作業。建議先匯出備份。確定繼續嗎？', function () { S.resetDemo(); toast('已還原示範資料。'); route(); }, true);
+    };
+    $('#btnClearAll').onclick = function () {
+      confirmDialog('清空全部資料', '所有學生檔案與作業紀錄將被刪除，無法復原；設定與自訂知識點會保留。建議先匯出備份。確定繼續嗎？', function () { S.clearAll(); toast('已清空，可開始建立正式的學生名冊。'); navigate('students'); }, true);
+    };
+  }
+
+  function onItemEdit(e) {
+    var tr = e.target.closest('tr[data-i]');
+    if (!tr) return;
+    var it = UI.upload.result.items[+tr.dataset.i];
+    var f = e.target.dataset.f;
+    if (!f || !it) return;
+    if (f === 'correct') {
+      it.correct = e.target.value === '1';
+      it.points = it.correct ? it.maxPoints : 0;
+      renderResult();
+      return;
+    }
+    if (f === 'points' || f === 'maxPoints') {
+      it[f] = Math.max(0, Number(e.target.value) || 0);
+      if (f === 'maxPoints') { if (it.points > it.maxPoints) it.points = it.maxPoints; it.correct = it.points >= it.maxPoints; renderResult(); return; }
+      it.correct = it.points >= it.maxPoints;
+      e.target.closest('tr').querySelector('[data-f="correct"]').className = 'correct-pick ' + (it.correct ? 'ok' : 'no');
+      e.target.closest('tr').querySelector('[data-f="correct"]').value = it.correct ? '1' : '0';
+    } else it[f] = e.target.value;
+    updateResultSummary();
+  }
+
+  function handleFiles(files) {
+    if (!files || !files.length) return;
+    var arr = Array.prototype.slice.call(files);
+    var done = 0;
+    arr.forEach(function (f) {
+      A.compressImage(f).then(function (im) {
+        UI.upload.images.push(im); done++;
+        if (done === arr.length) { renderThumbs(); toast('已加入 ' + arr.length + ' 張照片。'); }
+      }).catch(function (e) { done++; toast(e.message, 'error'); if (done === arr.length) renderThumbs(); });
+    });
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('提示詞已複製。'); }
+    catch (e) { openModal({ title: '專用提示詞', body: '<textarea rows="12" style="width:100%;font-family:monospace;font-size:10.5px">' + esc(text) + '</textarea>' }); }
+    ta.remove();
+  }
+
+  // ---------- 啟動 ----------
+  function boot() {
+    S.init();
+    bindGlobal();
+    paintIcons(document);
+    route();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(window);
+
+</script>
+</body>
+</html>
